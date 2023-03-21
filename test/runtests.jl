@@ -9,7 +9,9 @@ end
 tests = [
   "elastic_transport_test/connections_test.jl",
   "elastic_transport_test/transport_test.jl",
-  "elastic_transport_test/client_test.jl"
+  "elastic_transport_test/client_test.jl",
+  "api_test/utils_test.jl",
+  "api_test/search_test.jl"
 ]
 
 @info log("Running tests....")

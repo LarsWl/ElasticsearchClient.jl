@@ -188,7 +188,7 @@ function perform_request(
   duration = now() - start
 
   if response.status >= 300
-    log_response(method, body, url, response, "N/A", duration)
+    log_response(method, body, url, response.status, response.body, "N/A", duration)
 
     if !in(response.status, ignore)
       @error "[$(response.status)] $(response.body)"
