@@ -70,19 +70,29 @@ function user_agent_header()
 end
 
 function full_url(connection::Connection, path::String, params::Dict=Dict())
-  userinfo = ""
+  userinfo = nothing
   if haskey(connection.host, :user)
     userinfo = "$(escape_string(connection.host[:user])):$(escape_string(connection.host[:password]))"
   end
 
-  uri = URI(;
-    scheme=connection.host[:protocol],
-    host=connection.host[:host],
-    port=connection.host[:port],
-    userinfo=userinfo,
-    query=params,
-    path=get(connection.host, :path, "") * path
-  )
+  uri = if isnothing(userinfo) 
+    URI(;
+      scheme=connection.host[:protocol],
+      host=connection.host[:host],
+      port=connection.host[:port],
+      query=params,
+      path=get(connection.host, :path, "") * path
+    )
+  else
+    URI(;
+      scheme=connection.host[:protocol],
+      host=connection.host[:host],
+      port=connection.host[:port],
+      userinfo=userinfo,
+      query=params,
+      path=get(connection.host, :path, "") * path
+    )
+  end
 
   string(uri)
 end

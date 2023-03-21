@@ -27,8 +27,14 @@ test_body = Dict(
 test_sort = ["price:desc", "title:asc"]
 
 @testset "Testing search method" begin
-  @test Elasticsearch.API.search(client, index=index, body=test_body, sort=test_sort) isa Elasticsearch.API.Response
-  @test Elasticsearch.API.search(client, index=index, body=test_body) isa Elasticsearch.API.Response
-  @test Elasticsearch.API.search(client, index=index) isa Elasticsearch.API.Response
-  @test Elasticsearch.API.search(client) isa Elasticsearch.API.Response
+  client = Elasticsearch.Client()
+
+  client_patch = @patch Elasticsearch.ElasticTransport.perform_request(::Elasticsearch.ElasticTransport.Client, args...; kwargs...) = client_response_mock
+
+  apply(client_patch) do 
+    @test Elasticsearch.API.search(client, index=test_index, body=test_body, sort=test_sort) isa Elasticsearch.API.Response
+    @test Elasticsearch.API.search(client, index=test_index, body=test_body) isa Elasticsearch.API.Response
+    @test Elasticsearch.API.search(client, index=test_index) isa Elasticsearch.API.Response
+    @test Elasticsearch.API.search(client) isa Elasticsearch.API.Response
+  end
 end

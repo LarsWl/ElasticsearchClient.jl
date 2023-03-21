@@ -18,6 +18,7 @@ options = Dict(
   :transport_options => Dict{Symbol, Any}(
     :headers => Dict(
       "test-api-key" => "key",
+      :content_type => "application/json"
     ),
     :resurrect_timeout => 0
   )
@@ -25,7 +26,7 @@ options = Dict(
 
 successful_health_response_mock = HTTP.Response(
   200,
-  Dict("Content-Type" => "application/json"),
+  Dict("content-type" => "application/json"),
   JSON.json(
     Dict(
       "cluster_name" => "name",
@@ -36,7 +37,7 @@ successful_health_response_mock = HTTP.Response(
 
 successful_search_response_mock = HTTP.Response(
   200,
-  Dict("Content-Type" => "application/json"),
+  Dict("content-type" => "application/json"),
   JSON.json(
     Dict(
       "took" => 12
@@ -46,7 +47,7 @@ successful_search_response_mock = HTTP.Response(
 
 not_found_response_mock = HTTP.Response(
   404,
-  Dict("Content-Type" => "application/json"),
+  Dict("content-type" => "application/json"),
   JSON.json(
     Dict(
       "status" => "Not Found"
@@ -56,7 +57,7 @@ not_found_response_mock = HTTP.Response(
 
 internal_error_response_mock = HTTP.Response(
   500,
-  Dict("Content-Type" => "application/json"),
+  Dict("content-type" => "application/json"),
   JSON.json(
     Dict(
       "status" => "Error"

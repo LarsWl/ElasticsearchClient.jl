@@ -23,6 +23,6 @@ function search(client::Client; kwargs...)
   params = process_params(arguments)
 
   Response(
-    perform_request(client, method, path; params=params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, headers=headers, body=body)
   )
 end

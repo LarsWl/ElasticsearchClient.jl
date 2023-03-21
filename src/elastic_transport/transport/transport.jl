@@ -26,9 +26,10 @@ mutable struct Transport
   reload_after::Integer
   resurrect_after::Integer
   retry_on_status::Vector{Integer}
+  http_client::Module
 end
 
-function Transport(; hosts::Vector=[], options=Dict())
+function Transport(;hosts::Vector=[], options=Dict(), http_client::Module=HTTP)
   !haskey(options, :http) && (options[:http] = Dict())
   !haskey(options, :retry_on_status) && (options[:retry_on_status] = Integer[])
   !haskey(options, :delay_on_retry) && (options[:delay_on_retry] = 0)
@@ -46,7 +47,8 @@ function Transport(; hosts::Vector=[], options=Dict())
     get(options, :reload_connections, false),
     DEFAULT_RELOAD_AFTER,
     get(options, :resurrect_after, DEFAULT_RESURRECT_AFTER),
-    options[:retry_on_status]
+    options[:retry_on_status],
+    http_client
   )
 end
 
@@ -148,7 +150,8 @@ function perform_request(
     end
     body, headers = compress_request(transport, body, headers)
 
-    response = @mock HTTP.request(method, url; headers=headers, body=body, status_exception=false)
+    @debug "Starting request..."
+    response = @mock transport.http_client.request(method, url; headers=headers, body=body, status_exception=false)
     connection.failures > 0 && healthy!(connection)
 
     if response.status >= 300 && in(response.status, transport.retry_on_status)
@@ -188,7 +191,7 @@ function perform_request(
   duration = now() - start
 
   if response.status >= 300
-    log_response(method, body, url, response.status, response.body, "N/A", duration)
+    log_response(method, body, url, response.status, String(response.body), "N/A", duration)
 
     if !in(response.status, ignore)
       @error "[$(response.status)] $(response.body)"
