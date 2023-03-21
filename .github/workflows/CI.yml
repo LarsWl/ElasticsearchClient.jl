@@ -42,7 +42,7 @@ jobs:
           arch: ${{ matrix.arch }}
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
-      env:
+        env:
           JULIA_COVERAGE_BLACK_HOLE_SERVER_URL_PUT: https://httpbingo.julialang.org/put
       # submit coverage data to a black hole server, and collect new coverage data on that
       - run: julia --color=yes --project=. --code-coverage=user etc/coverage.jl
