@@ -4,6 +4,8 @@ const ACCEPT_ENCODING = "Accept-Encoding"
 const CONTENT_ENCODING = "Content-Encoding"
 const CONTENT_TYPE_STR = "Content-Type"
 const CONTENT_TYPE_REGEX = r"content-?_?type"
+const ACCEPT_STR = "Accept"
+const ACCEPT_REGEX = r"accept"i
 const DEFAULT_CONTENT_TYPE = "application/json"
 const GZIP = "gzip"
 const GZIP_FIRST_TWO_BYTES = "1f8b"
@@ -46,6 +48,7 @@ end
 function configure_headers(headers::Dict, use_compression::Bool)
   headers[CONTENT_TYPE_STR] = find_header_value(() -> DEFAULT_CONTENT_TYPE, headers, CONTENT_TYPE_REGEX)
   headers[USER_AGENT_STR] = find_header_value(() -> user_agent_header(), headers, USER_AGENT_REGEX)
+  headers[ACCEPT_STR] = find_header_value(() -> DEFAULT_CONTENT_TYPE, headers, ACCEPT_REGEX)
   use_compression && (headers[ACCEPT_ENCODING] = GZIP)
 
   headers
@@ -75,7 +78,7 @@ function full_url(connection::Connection, path::String, params::Dict=Dict())
     userinfo = "$(escape_string(connection.host[:user])):$(escape_string(connection.host[:password]))"
   end
 
-  uri = if isnothing(userinfo) 
+  uri = if isnothing(userinfo)
     URI(;
       scheme=connection.host[:protocol],
       host=connection.host[:host],

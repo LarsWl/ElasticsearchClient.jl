@@ -29,7 +29,7 @@ mutable struct Transport
   http_client::Module
 end
 
-function Transport(;hosts::Vector=[], options=Dict(), http_client::Module=HTTP)
+function Transport(; hosts::Vector=[], options=Dict(), http_client::Module=HTTP)
   !haskey(options, :http) && (options[:http] = Dict())
   !haskey(options, :retry_on_status) && (options[:retry_on_status] = Integer[])
   !haskey(options, :delay_on_retry) && (options[:delay_on_retry] = 0)
@@ -155,7 +155,7 @@ function perform_request(
     connection.failures > 0 && healthy!(connection)
 
     if response.status >= 300 && in(response.status, transport.retry_on_status)
-      raise_transport_error(response)
+      raise_transport_error(response.status, String(response.body))
     end
   catch exception
     @retry if exception isa ServerException
@@ -190,22 +190,26 @@ function perform_request(
 
   duration = now() - start
 
+  response_headers = Dict(response.headers)
+  response_body = String(response.body)
+
   if response.status >= 300
-    log_response(method, body, url, response.status, String(response.body), "N/A", duration)
+    log_response(method, body, url, response.status, response_body, "N/A", duration)
 
     if !in(response.status, ignore)
-      @error "[$(response.status)] $(response.body)"
-      raise_transport_error(response)
+      @error "[$(response.status)] $(response_body)"
+      raise_transport_error(response.status, response_body)
     end
   end
 
   json = nothing
   took = "n/a"
-  response_headers = Dict(response.headers)
-  response_body = String(response.body)
+
   if !isempty(response_body) && !isnothing(match(r"json"i, get(response_headers, "content-type", "")))
     json = JSON.parse(response_body)
-    took = get(json, "took", "n/a")
+    took = if json isa Dict
+      get(json, "took", "n/a")
+    end
   end
 
   log_response(method, body, url, response.status, response_body, took, duration)
@@ -237,14 +241,14 @@ function compress_request(::Transport, body::Nothing, headers::Dict)
   ("", headers)
 end
 
-function raise_transport_error(response::HTTP.Response)
-  error_type = if haskey(HTTP_STATUSES, response.status)
-    eval(HTTP_STATUSES[response.status])
+function raise_transport_error(response_status, response_body)
+  error_type = if haskey(HTTP_STATUSES, response_status)
+    eval(HTTP_STATUSES[response_status])
   else
     ServerError
   end
 
-  throw(error_type(response.status, String(response.body)))
+  throw(error_type(response_status, response_body))
 end
 
 function log_response(method, body, url, response_status, response_body, took, duration)

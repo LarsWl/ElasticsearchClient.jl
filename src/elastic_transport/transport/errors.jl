@@ -1,10 +1,10 @@
 using HTTP
 
-abstract type ServerException <: Exception; end
+abstract type ServerException <: Exception end
 
 struct ServerError <: ServerException
   status
-  message
+  message::String
 end
 
 const HTTP_STATUSES = Dict(
@@ -15,9 +15,7 @@ const HTTP_STATUSES = Dict(
   304 => :NotModified,
   305 => :UseProxy,
   307 => :TemporaryRedirect,
-  308 => :PermanentRedirect,
-
-  400 => :BadRequest,
+  308 => :PermanentRedirect, 400 => :BadRequest,
   401 => :Unauthorized,
   402 => :PaymentRequired,
   403 => :Forbidden,
@@ -42,9 +40,7 @@ const HTTP_STATUSES = Dict(
   450 => :BlockedByWindowsParentalControls,
   494 => :RequestHeaderTooLarge,
   497 => :HTTPToHTTPS,
-  499 => :ClientClosedRequest,
-
-  500 => :InternalServerError,
+  499 => :ClientClosedRequest, 500 => :InternalServerError,
   501 => :NotImplemented,
   502 => :BadGateway,
   503 => :ServiceUnavailable,
@@ -59,7 +55,7 @@ foreach(values(HTTP_STATUSES)) do exception_name
     """
     struct $exception_name <: ServerException
       status
-      message
+      message::String
     end
     """
   )

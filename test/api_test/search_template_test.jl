@@ -20,21 +20,19 @@ client_response_mock = HTTP.Response(
 
 test_index = "test"
 test_body = Dict(
-  "query" => Dict(
-    "match_all" => Dict()
+  "id" => "test",
+  "params" => Dict(
+    "p1" => 1
   )
 )
-test_sort = ["price:desc", "title:asc"]
 
 @testset "Testing search method" begin
   client = Elasticsearch.Client()
 
   client_patch = @patch Elasticsearch.ElasticTransport.perform_request(::Elasticsearch.ElasticTransport.Client, args...; kwargs...) = client_response_mock
 
-  apply(client_patch) do 
-    @test Elasticsearch.search(client, index=test_index, body=test_body, sort=test_sort) isa Elasticsearch.API.Response
-    @test Elasticsearch.search(client, index=test_index, body=test_body) isa Elasticsearch.API.Response
-    @test Elasticsearch.search(client, index=test_index) isa Elasticsearch.API.Response
-    @test Elasticsearch.search(client) isa Elasticsearch.API.Response
+  apply(client_patch) do
+    @test Elasticsearch.search_template(client, index=test_index, body=test_body) isa Elasticsearch.API.Response
+    @test Elasticsearch.search_template(client, body=test_body) isa Elasticsearch.API.Response
   end
 end

@@ -1,23 +1,17 @@
 using Mocking
 
-function search(client::Client; kwargs...)
+function indices(client::Client; kwargs...)
   arguments = Dict(kwargs)
 
   headers = pop!(arguments, :headers, Dict())
-  body = pop!(arguments, :body, nothing)
-
+  body = nothing
   index = pop!(arguments, :index, nothing)
-
-  method = if isnothing(body)
-    HTTP_GET
-  else
-    HTTP_POST
-  end
+  method = HTTP_GET
 
   path = if !isnothing(index)
-    "/$(_listify(index))/$(UNDERSCORE_SEARCH)"
+    "/_cat/indices/$(_listify(index))"
   else
-    "/$(UNDERSCORE_SEARCH)"
+    "/_cat/indices"
   end
 
   params = process_params(arguments)

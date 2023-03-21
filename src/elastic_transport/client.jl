@@ -13,7 +13,7 @@ struct Client
   transport::Transport
 end
 
-function Client(arguments::Dict{Symbol, Any}=Dict{Symbol, Any}(); http_client::Module=HTTP)
+function Client(arguments::Dict{Symbol,Any}=Dict{Symbol,Any}(); http_client::Module=HTTP)
   options = deepcopy(arguments)
 
   get!(options, :reload_connections, false)
@@ -37,7 +37,7 @@ function Client(arguments::Dict{Symbol, Any}=Dict{Symbol, Any}(); http_client::M
     arguments[:transport_options][:request] = Dict(:timeout => arguments[:request_timeout])
   end
 
-  transport = Transport(;hosts=hosts, options=arguments, http_client=http_client)
+  transport = Transport(; hosts=hosts, options=arguments, http_client=http_client)
 
   Client(
     arguments,
@@ -141,6 +141,6 @@ function parse_host_parts(host::URI)
   )
 end
 
-function parse_host_parts(host::Dict{Symbol, Any})
+function parse_host_parts(host::Dict{Symbol,Any})
   host
 end

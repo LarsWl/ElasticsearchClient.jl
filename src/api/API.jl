@@ -1,6 +1,7 @@
 module API
 
-export search
+export Cat, Indices
+export search, search_template
 
 using ..ElasticTransport
 
@@ -16,6 +17,9 @@ const DEFAULT_DOC = "_doc"
 
 include("response.jl")
 include("utils.jl")
+include("actions/cat/Cat.jl")
+include("actions/indices/Indices.jl")
 include("actions/search.jl")
+include("actions/search_template.jl")
 
 end
