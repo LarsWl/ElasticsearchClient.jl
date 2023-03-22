@@ -14,7 +14,8 @@ tests = [
   "api_test/search_test.jl",
   "api_test/search_template_test.jl",
   "api_test/cat/indices_test.jl",
-  "api_test/indices/delete_test.jl"
+  "api_test/indices/delete_test.jl",
+  "api_test/put_script_test.jl"
 ]
 
 @info log("Running tests....")
