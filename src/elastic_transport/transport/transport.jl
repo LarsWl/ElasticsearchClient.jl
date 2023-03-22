@@ -242,11 +242,7 @@ function compress_request(::Transport, body::Nothing, headers::Dict)
 end
 
 function raise_transport_error(response_status, response_body)
-  error_type = if haskey(HTTP_STATUSES, response_status)
-    eval(HTTP_STATUSES[response_status])
-  else
-    ServerError
-  end
+  error_type = get(CODE_TO_EXCEPTION, response_status, ServerError)
 
   throw(error_type(response_status, response_body))
 end

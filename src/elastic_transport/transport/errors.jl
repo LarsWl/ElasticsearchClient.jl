@@ -15,7 +15,8 @@ const HTTP_STATUSES = Dict(
   304 => :NotModified,
   305 => :UseProxy,
   307 => :TemporaryRedirect,
-  308 => :PermanentRedirect, 400 => :BadRequest,
+  308 => :PermanentRedirect,
+  400 => :BadRequest,
   401 => :Unauthorized,
   402 => :PaymentRequired,
   403 => :Forbidden,
@@ -40,7 +41,8 @@ const HTTP_STATUSES = Dict(
   450 => :BlockedByWindowsParentalControls,
   494 => :RequestHeaderTooLarge,
   497 => :HTTPToHTTPS,
-  499 => :ClientClosedRequest, 500 => :InternalServerError,
+  499 => :ClientClosedRequest,
+  500 => :InternalServerError,
   501 => :NotImplemented,
   502 => :BadGateway,
   503 => :ServiceUnavailable,
@@ -62,5 +64,15 @@ foreach(values(HTTP_STATUSES)) do exception_name
 
   eval(struct_expr)
 end
+
+using InteractiveUtils: subtypes
+
+const CODE_TO_EXCEPTION = Dict(
+  Symbol(Base.typename(t).name) => t
+  for t in subtypes(ServerException)
+) |> t_codes -> Dict(
+  k => t_codes[v]
+  for (k, v) in HTTP_STATUSES
+)
 
 const HOST_UNREACHABLE_EXCEPTIONS = [HTTP.TimeoutError, HTTP.ConnectError]
