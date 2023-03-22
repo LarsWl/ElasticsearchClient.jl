@@ -65,4 +65,14 @@ foreach(values(HTTP_STATUSES)) do exception_name
   eval(struct_expr)
 end
 
+using InteractiveUtils: subtypes
+
+const CODE_TO_EXCEPTION = Dict(
+  Symbol(Base.typename(t).name) => t
+  for t in subtypes(ServerException)
+) |> t_codes -> Dict(
+  k => t_codes[v]
+  for (k, v) in HTTP_STATUSES
+)
+
 const HOST_UNREACHABLE_EXCEPTIONS = [HTTP.TimeoutError, HTTP.ConnectError]
