@@ -21,5 +21,6 @@ include("actions/cat/Cat.jl")
 include("actions/indices/Indices.jl")
 include("actions/search.jl")
 include("actions/search_template.jl")
+include("actions/put_script.jl")
 
 end
