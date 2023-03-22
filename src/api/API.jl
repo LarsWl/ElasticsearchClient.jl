@@ -1,7 +1,7 @@
 module API
 
 export Cat, Indices
-export search, search_template
+export search, search_template, put_script
 
 using ..ElasticTransport
 

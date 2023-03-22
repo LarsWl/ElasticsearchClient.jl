@@ -30,7 +30,7 @@ test_context = ["test_context1", "test_context2"]
   client_patch = @patch Elasticsearch.ElasticTransport.perform_request(::Elasticsearch.ElasticTransport.Client, args...; kwargs...) = client_response_mock
 
   apply(client_patch) do
-    @test Elasticsearch.search_template(client, id=test_id, body=test_body) isa Elasticsearch.API.Response
-    @test Elasticsearch.search_template(client, id=test_id, body=test_body, context=test_context) isa Elasticsearch.API.Response
+    @test Elasticsearch.put_script(client, id=test_id, body=test_body) isa Elasticsearch.API.Response
+    @test Elasticsearch.put_script(client, id=test_id, body=test_body, context=test_context) isa Elasticsearch.API.Response
   end
 end
