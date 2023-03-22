@@ -15,6 +15,7 @@ end
 
 function Client(arguments::Dict{Symbol,Any}=Dict{Symbol,Any}(); http_client::Module=HTTP)
   options = deepcopy(arguments)
+  arguments = options
 
   get!(options, :reload_connections, false)
   get!(options, :retry_on_failure, false)

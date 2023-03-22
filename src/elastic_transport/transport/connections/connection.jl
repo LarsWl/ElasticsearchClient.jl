@@ -134,6 +134,6 @@ function parse_headers(conn::Connection, headers::Union{Nothing,Dict})
   if !isnothing(headers)
     merge(conn.headers, headers)
   else
-    deepcopy(conn.headers)
+    copy(conn.headers)
   end
 end

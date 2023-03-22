@@ -125,7 +125,7 @@ function perform_request(
   reload_on_failure = get(opts, :reload_on_failure, transport.reload_connections)
   delay_on_retry = get(opts, :delay_on_retry, transport.options[:delay_on_retry]) / 1000.0
 
-  params = deepcopy(params)
+  params = copy(params)
 
   ignore = if haskey(params, :ignore)
     unique(Integer[pop!(params, :ignore)])
@@ -226,7 +226,7 @@ function compress_request(transport::Transport, body::String, headers::Dict)
   if transport.use_compression
     headers[Connections.CONTENT_ENCODING] = Connections.GZIP
     body = transcode(GzipCompressor, body) |> String
-  elseif haskey(headers, Connections.CONTENT_ENCODING)
+  else
     delete!(headers, Connections.CONTENT_ENCODING)
   end
 
@@ -234,9 +234,7 @@ function compress_request(transport::Transport, body::String, headers::Dict)
 end
 
 function compress_request(::Transport, body::Nothing, headers::Dict)
-  if haskey(headers, Connections.CONTENT_ENCODING)
-    delete!(headers, Connections.CONTENT_ENCODING)
-  end
+  delete!(headers, Connections.CONTENT_ENCODING)
 
   ("", headers)
 end
