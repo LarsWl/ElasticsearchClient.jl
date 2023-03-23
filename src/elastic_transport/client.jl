@@ -2,7 +2,10 @@ using HTTP
 using URIs
 using Mocking
 
-const DEFAULT_HOST = "localhost:9200"
+const DEFAULT_PORT = 9200
+const DEFAULT_PROTOCOL = "http"
+const DEFAULT_HOST = "localhost"
+const DEFAULT_URL = "$DEFAULT_PROTOCOL://$DEFAULT_HOST:$DEFAULT_PORT"
 
 struct Client
   arguments::Dict
@@ -13,8 +16,8 @@ struct Client
   transport::Transport
 end
 
-function Client(arguments::Dict{Symbol,Any}=Dict{Symbol,Any}(); http_client::Module=HTTP)
-  options = deepcopy(arguments)
+function Client(;http_client::Module=HTTP, kwargs...)
+  options = deepcopy(Dict{Symbol, Any}(kwargs))
   arguments = options
 
   get!(options, :reload_connections, false)
@@ -30,7 +33,7 @@ function Client(arguments::Dict{Symbol,Any}=Dict{Symbol,Any}(); http_client::Mod
   hosts_config = if !isnothing(host_key_index)
     arguments[host_keys[host_key_index]]
   else
-    get(ENV, "ELASTICSEARCH_URL", DEFAULT_HOST)
+    get(ENV, "ELASTICSEARCH_URL", DEFAULT_URL)
   end
   hosts = extract_hosts(hosts_config, options)
 
@@ -79,6 +82,8 @@ function extract_hosts(hosts_config, options)
     hosts_config
   elseif hosts_config isa Dict || hosts_config isa URI
     [hosts_config]
+  elseif hosts_config isa NamedTuple
+    [Dict(zip(keys(hosts_config), values(hosts_config)))]
   else
     error("Can't extract hosts")
   end
@@ -121,8 +126,8 @@ function parse_host_parts(host::String)
     host_info = split(host, ":")
 
     Dict(
-      :host => get(host_info, 0, ""),
-      :port => get(host_info, 1, "")
+      :host => get(host_info, 0, DEFAULT_HOST),
+      :port => parse(Int16, get(host_info, 1, string(DEFAULT_PORT)))
     )
   end
 
@@ -131,6 +136,11 @@ end
 
 function parse_host_parts(host::URI)
   userinfo = split(host.userinfo, ":") .|> string
+  port = if isempty(host.port)
+    DEFAULT_PORT
+  else
+    parse(Int16, host.port)
+  end
 
   Dict(
     :scheme => host.scheme,
@@ -138,10 +148,10 @@ function parse_host_parts(host::URI)
     :password => get(userinfo, 1, ""),
     :host => host.host,
     :path => host.path,
-    :port => host.port
+    :port => port
   )
 end
 
-function parse_host_parts(host::Dict{Symbol,Any})
+function parse_host_parts(host::Union{Dict{Symbol,Any}, NamedTuple})
   host
 end

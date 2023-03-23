@@ -5,8 +5,6 @@ using Retry
 using Mocking
 using JSON
 
-const DEFAULT_PORT = 9200
-const DEFAULT_PROTOCOL = "http"
 const DEFAULT_RELOAD_AFTER = 10_000 # Requests
 const DEFAULT_RESURRECT_AFTER = 60  # Seconds
 const DEFAULT_MAX_RETRIES = 3 # Requests
