@@ -204,8 +204,16 @@ function perform_request(
 
   json = nothing
   took = "n/a"
+  response_content_type = findfirst(header_pair -> !isnothing(match(Connections.CONTENT_TYPE_REGEX, header_pair.first)), response.headers) |>
+    content_type_index -> begin
+      if isnothing(content_type_index)
+        nothing
+      else
+        response.headers[content_type_index].second
+      end
+    end
 
-  if !isempty(response_body) && !isnothing(match(r"json"i, get(response_headers, "content-type", "")))
+  if !isempty(response_body) && !isnothing(response_content_type) && !isnothing(match(r"json"i, response_content_type))
     json = JSON.parse(response_body)
     took = if json isa Dict
       get(json, "took", "n/a")
