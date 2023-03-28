@@ -2,19 +2,24 @@ using HTTP
 using URIs
 using Mocking
 
-const DEFAULT_HOST = "localhost:9200"
+const DEFAULT_PORT = 9200
+const DEFAULT_PROTOCOL = "http"
+const DEFAULT_HOST = "localhost"
+const DEFAULT_URL = "$DEFAULT_PROTOCOL://$DEFAULT_HOST:$DEFAULT_PORT"
+const SECURITY_PRIVILEGES_VALIDATION_WARNING = "The client is unable to verify that the server is Elasticsearch due to security privileges on the server side. Some functionality may not be compatible if the server is running an unsupported product."
+const VALIDATION_WARNING = "The client is unable to verify that the server is Elasticsearch. Some functionality may not be compatible if the server is running an unsupported product."
 
-struct Client
+mutable struct Client
   arguments::Dict
   options::Dict
   hosts::Vector
   send_get_body_as::String
-  ca_fingerpring::Bool
+  verified::Bool
   transport::Transport
 end
 
-function Client(arguments::Dict{Symbol,Any}=Dict{Symbol,Any}(); http_client::Module=HTTP)
-  options = deepcopy(arguments)
+function Client(;http_client::Module=HTTP, kwargs...)
+  options = deepcopy(Dict{Symbol, Any}(kwargs))
   arguments = options
 
   get!(options, :reload_connections, false)
@@ -30,7 +35,7 @@ function Client(arguments::Dict{Symbol,Any}=Dict{Symbol,Any}(); http_client::Mod
   hosts_config = if !isnothing(host_key_index)
     arguments[host_keys[host_key_index]]
   else
-    get(ENV, "ELASTICSEARCH_URL", DEFAULT_HOST)
+    get(ENV, "ELASTICSEARCH_URL", DEFAULT_URL)
   end
   hosts = extract_hosts(hosts_config, options)
 
@@ -50,6 +55,37 @@ function Client(arguments::Dict{Symbol,Any}=Dict{Symbol,Any}(); http_client::Mod
   )
 end
 
+function verify_elasticsearch(client::Client)
+  response = nothing
+  try
+    response = elastisearch_validation_request(client)
+  catch exc
+    if typeof(exc) in [Forbidden, Unauthorized, RequestEntityTooLarge]
+      client.verified = true
+      @warn SECURITY_PRIVILEGES_VALIDATION_WARNING
+      return
+    else
+      @warn VALIDATION_WARNING
+      return
+    end
+  end
+
+  body = response.body
+  version = get(() -> Dict(), body, "version") |> version -> get(version, "number", nothing)
+
+  verify_with_version_and_headers(client, version, response.headers)
+end
+
+@warn "Version verification isn't implemented"
+function verify_with_version_and_headers(client::Client, _headers, _version)
+  @warn "Version verification isn't implemented"
+  client.verified = true
+end
+
+function elastisearch_validation_request(client::Client)
+  @mock perform_request(client.transport, "GET", "/")
+end
+
 function perform_request(
   client::Client,
   method::String,
@@ -62,14 +98,11 @@ function perform_request(
     method = client.send_get_body_as
   end
 
-  validate_ca_fingerprints(client)
+  if !client.verified
+    verify_elasticsearch(client)
+  end
 
   @mock perform_request(client.transport, method, path; params=params, body=body, headers=headers)
-end
-
-@warn "ca fingerprints validation is not implemented"
-function validate_ca_fingerprints(::Client)
-  @warn "ca fingerprints validation is not implemented"
 end
 
 function extract_hosts(hosts_config, options)
@@ -79,6 +112,8 @@ function extract_hosts(hosts_config, options)
     hosts_config
   elseif hosts_config isa Dict || hosts_config isa URI
     [hosts_config]
+  elseif hosts_config isa NamedTuple
+    [Dict(zip(keys(hosts_config), values(hosts_config)))]
   else
     error("Can't extract hosts")
   end
@@ -121,8 +156,8 @@ function parse_host_parts(host::String)
     host_info = split(host, ":")
 
     Dict(
-      :host => get(host_info, 0, ""),
-      :port => get(host_info, 1, "")
+      :host => get(host_info, 0, DEFAULT_HOST),
+      :port => parse(Int16, get(host_info, 1, string(DEFAULT_PORT)))
     )
   end
 
@@ -131,6 +166,11 @@ end
 
 function parse_host_parts(host::URI)
   userinfo = split(host.userinfo, ":") .|> string
+  port = if isempty(host.port)
+    DEFAULT_PORT
+  else
+    parse(Int16, host.port)
+  end
 
   Dict(
     :scheme => host.scheme,
@@ -138,10 +178,10 @@ function parse_host_parts(host::URI)
     :password => get(userinfo, 1, ""),
     :host => host.host,
     :path => host.path,
-    :port => host.port
+    :port => port
   )
 end
 
-function parse_host_parts(host::Dict{Symbol,Any})
+function parse_host_parts(host::Union{Dict{Symbol,Any}, NamedTuple})
   host
 end
