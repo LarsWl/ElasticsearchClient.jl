@@ -5,8 +5,6 @@ using Retry
 using Mocking
 using JSON
 
-const DEFAULT_PORT = 9200
-const DEFAULT_PROTOCOL = "http"
 const DEFAULT_RELOAD_AFTER = 10_000 # Requests
 const DEFAULT_RESURRECT_AFTER = 60  # Seconds
 const DEFAULT_MAX_RETRIES = 3 # Requests
@@ -62,7 +60,7 @@ function get_connection(transport::Transport, options=Dict())
   end
 
   if transport.reload_connections && (transport.counter % transport.reload_after) == 0
-    reload_connections!
+    reload_connections!(transport)
   end
 
   Connections.get_connection(transport.connections)
@@ -72,9 +70,18 @@ function resurrect_dead_connections!(transport::Transport)
   foreach(Connections.resurrect!, Connections.dead(transport.connections))
 end
 
-@warn "Reload connections are not implemented"
+
 function reload_connections!(transport::Transport)
-  @warn "Reload connections are not implemented"
+  try
+    hosts = sniff_hosts(transport)
+    rebuild_connections!(transport, hosts = hosts)
+  catch e
+    if e isa SniffingTimetoutError
+      @error "[SnifferTimeoutError] Timeout when reloading connections."
+    else
+      throw(e)
+    end
+  end
 end
 
 function build_connections(hosts::Vector, options::Dict)
@@ -82,6 +89,23 @@ function build_connections(hosts::Vector, options::Dict)
     connections=connections_from_host(hosts, options),
     selector_type=get(options, :selector_type, Connections.DEFAULT_SELECTOR)
   )
+end
+
+function rebuild_connections!(transport::Transport; hosts)
+  lock(transport.state_lock) do
+    transport.hosts = hosts
+
+    new_connections = build_connections(hosts, transport.options)
+    stale_connections = filter(transport.connections.connections) do conn
+      !any(new_conn -> new_conn == conn, new_connections)
+    end
+    new_connections = filter(new_connections) do conn
+      !any(new_conn -> new_conn == conn, transport.connections.connections)
+    end
+
+    foreach(conn -> Connections.remove!(transport.connections, conn), stale_connections)
+    push!(transport.connections, new_connections.connections...)
+  end
 end
 
 function connections_from_host(hosts::Vector, options::Dict)
@@ -169,8 +193,7 @@ function perform_request(
     if typeof(exception) in HOST_UNREACHABLE_EXCEPTIONS
       @error "[$(typeof(exception))] $(connection.host)"
 
-      # Disable dead connections, before reload_connections implementation
-      # Connections.dead!(connection)
+      Connections.dead!(connection)
     end
 
     @retry if reload_on_failure && tries < length(transport.connections) && in(typeof(exception), HOST_UNREACHABLE_EXCEPTIONS)
