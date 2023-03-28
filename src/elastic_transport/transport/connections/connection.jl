@@ -134,3 +134,9 @@ function parse_headers(conn::Connection, headers::Union{Nothing,Dict})
     copy(conn.headers)
   end
 end
+
+function Base.:(==)(src::Connection, other::Connection)
+  src.host[:protocol] == other.host[:protocol] &&
+    src.host[:host] == other.host[:host] &&
+    src.host[:port] == other.host[:port]
+end

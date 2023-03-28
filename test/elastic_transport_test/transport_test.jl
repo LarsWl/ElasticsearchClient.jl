@@ -8,7 +8,7 @@ Mocking.activate()
 
 hosts = [
   Dict{Symbol, Any}(:host => "localhost", :schema => "https"),
-  Dict{Symbol, Any}(:host => "localhost", :schema => "https", :port => 9201),
+  Dict{Symbol, Any}(:host => "127.0.0.1", :schema => "http", :port => 9250),
   Dict{Symbol, Any}(:host => "aws_host", :port => 9200),
 ]
 
@@ -61,6 +61,40 @@ internal_error_response_mock = HTTP.Response(
   JSON.json(
     Dict(
       "status" => "Error"
+    )
+  )
+)
+
+nodes_response_mock = HTTP.Response(
+  200,
+  Dict("content-type" => "application/json"),
+  Dict(
+    "nodes" => Dict(
+      "node_id_1" => Dict(
+        "roles" => ["master"],
+        "name" => "Name Node 1",
+        "http" => Dict("publish_address" => "127.0.0.1:9250")
+      ),
+      "node_id_2" => Dict(
+        "roles" => ["master"],
+        "name" => "Name Node 2",
+        "http" => Dict("publish_address" => "testhost1.com:9250")
+      ),
+      "node_id_3" => Dict(
+        "roles" => ["master"],
+        "name" => "Name Node 3",
+        "http" => Dict("publish_address" => "inet[/127.0.0.2:9250]")
+      ),
+      "node_id_4" => Dict(
+        "roles" => ["master"],
+        "name" => "Name Node 4",
+        "http" => Dict("publish_address" => "example.com/127.0.0.1:9250")
+      ),
+      "node_id_5" => Dict(
+        "roles" => ["master"],
+        "name" => "Name Node 5",
+        "http" => Dict("publish_address" => "[::1]:9250")
+      ), 
     )
   )
 )
@@ -143,6 +177,77 @@ internal_error_response_mock = HTTP.Response(
           @test count_tries == 1
         end
       end
+
+      @testset "Testing with connect error" begin
+        http_patch = @patch HTTP.request(args...;kwargs...) = throw(HTTP.ConnectError("Error", "Error"))
+
+        apply(http_patch) do
+          @test_throws HTTP.ConnectError Elasticsearch.ElasticTransport.perform_request(
+            transport,
+            "POST",
+            "/_search"; 
+            body = Dict("query" => Dict("match_all" => Dict()))
+          )
+
+          @test length(Elasticsearch.ElasticTransport.Connections.dead(transport.connections)) == 1
+        end
+      end
+    end
+  end
+
+  @testset "Testing sniffing" begin
+    @testset "Testing successful sniffing" begin
+      perform_request_patch = @patch Elasticsearch.ElasticTransport.perform_request(
+        ::Elasticsearch.ElasticTransport.Transport, args...; kwargs...
+      ) = nodes_response_mock
+
+      transport = Elasticsearch.ElasticTransport.Transport(;hosts, options=options)
+
+      apply(perform_request_patch) do
+        hosts = Elasticsearch.ElasticTransport.sniff_hosts(transport) |>
+          hosts -> sort(hosts, by = host -> host[:id])
+
+        @test hosts[begin][:host] == "127.0.0.1"
+        @test hosts[begin][:port] == 9250
+
+        @test hosts[begin + 1][:host] == "testhost1.com"
+        @test hosts[begin + 1][:port] == 9250
+
+        @test hosts[begin + 2][:host] == "127.0.0.2"
+        @test hosts[begin + 2][:port] == 9250
+
+        @test hosts[begin + 3][:host] == "example.com"
+        @test hosts[begin + 3][:port] == 9250
+
+        @test hosts[begin + 4][:host] == "::1"
+        @test hosts[begin + 4][:port] == 9250
+      end
+    end
+
+    @testset "Testing sniffing timeout" begin
+      perform_request_patch = @patch Elasticsearch.ElasticTransport.perform_request(
+        ::Elasticsearch.ElasticTransport.Transport, args...; kwargs...
+      ) = sleep(Elasticsearch.ElasticTransport.DEFAULT_SNIFFING_TIMEOUT + 0.5)
+
+      transport = Elasticsearch.ElasticTransport.Transport(;hosts, options=options)
+
+      apply(perform_request_patch) do
+        @test_throws Elasticsearch.ElasticTransport.SniffingTimetoutError Elasticsearch.ElasticTransport.sniff_hosts(transport)
+      end
+    end
+  end
+
+  @testset "Testing reload connections" begin
+    nodes_request_patch = @patch Elasticsearch.ElasticTransport.perform_request(
+      ::Elasticsearch.ElasticTransport.Transport, args...; kwargs...
+    ) = nodes_response_mock
+
+    transport = Elasticsearch.ElasticTransport.Transport(;hosts, options=options)
+
+    apply(nodes_request_patch) do
+      Elasticsearch.ElasticTransport.reload_connections!(transport)
+
+      @test length(transport.connections) == length(nodes_response_mock.body["nodes"])
     end
   end
 end
