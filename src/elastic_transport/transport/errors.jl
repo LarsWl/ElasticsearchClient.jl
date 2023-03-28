@@ -52,27 +52,26 @@ const HTTP_STATUSES = Dict(
   510 => :NotExtended
 )
 
-foreach(values(HTTP_STATUSES)) do exception_name
-  struct_expr = Meta.parse(
-    """
-    struct $exception_name <: ServerException
-      status
-      message::String
+macro generate_exception_structures(http_statuses_dict)
+  dict = eval(http_statuses_dict)
+  # dict = HTTP_STATUSES
+  return Expr(:block, map(values(dict)) do exception_name
+    quote
+      struct $exception_name <: ServerException
+        status
+        message::String
+      end
     end
-    """
-  )
-
-  eval(struct_expr)
+  end...)
 end
 
-using InteractiveUtils: subtypes
+@generate_exception_structures(HTTP_STATUSES)
 
-const CODE_TO_EXCEPTION = Dict(
-  Symbol(Base.typename(t).name) => t
-  for t in subtypes(ServerException)
-) |> t_codes -> Dict(
-  k => t_codes[v]
-  for (k, v) in HTTP_STATUSES
-)
+macro transform_exceptions_to_types(http_statuses_dict)
+  dict = eval(http_statuses_dict)
+  Dict(k => eval(v) for (k, v) in dict)
+end
+
+const CODE_TO_EXCEPTION = @transform_exceptions_to_types(HTTP_STATUSES)
 
 const HOST_UNREACHABLE_EXCEPTIONS = [HTTP.TimeoutError, HTTP.ConnectError]
