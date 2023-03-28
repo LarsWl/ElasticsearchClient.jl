@@ -6,13 +6,15 @@ const DEFAULT_PORT = 9200
 const DEFAULT_PROTOCOL = "http"
 const DEFAULT_HOST = "localhost"
 const DEFAULT_URL = "$DEFAULT_PROTOCOL://$DEFAULT_HOST:$DEFAULT_PORT"
+const SECURITY_PRIVILEGES_VALIDATION_WARNING = "The client is unable to verify that the server is Elasticsearch due to security privileges on the server side. Some functionality may not be compatible if the server is running an unsupported product."
+const VALIDATION_WARNING = "The client is unable to verify that the server is Elasticsearch. Some functionality may not be compatible if the server is running an unsupported product."
 
-struct Client
+mutable struct Client
   arguments::Dict
   options::Dict
   hosts::Vector
   send_get_body_as::String
-  ca_fingerpring::Bool
+  verified::Bool
   transport::Transport
 end
 
@@ -53,6 +55,37 @@ function Client(;http_client::Module=HTTP, kwargs...)
   )
 end
 
+function verify_elasticsearch(client::Client)
+  response = nothing
+  try
+    response = elastisearch_validation_request(client)
+  catch exc
+    if typeof(exc) in [Forbidden, Unauthorized, RequestEntityTooLarge]
+      client.verified = true
+      @warn SECURITY_PRIVILEGES_VALIDATION_WARNING
+      return
+    else
+      @warn VALIDATION_WARNING
+      return
+    end
+  end
+
+  body = response.body
+  version = get(() -> Dict(), body, "version") |> version -> get(version, "number", nothing)
+
+  verify_with_version_and_headers(client, version, response.headers)
+end
+
+@warn "Version verification isn't implemented"
+function verify_with_version_and_headers(client::Client, _headers, _version)
+  @warn "Version verification isn't implemented"
+  client.verified = true
+end
+
+function elastisearch_validation_request(client::Client)
+  @mock perform_request(client.transport, "GET", "/")
+end
+
 function perform_request(
   client::Client,
   method::String,
@@ -65,14 +98,11 @@ function perform_request(
     method = client.send_get_body_as
   end
 
-  validate_ca_fingerprints(client)
+  if !client.verified
+    verify_elasticsearch(client)
+  end
 
   @mock perform_request(client.transport, method, path; params=params, body=body, headers=headers)
-end
-
-@warn "ca fingerprints validation is not implemented"
-function validate_ca_fingerprints(::Client)
-  @warn "ca fingerprints validation is not implemented"
 end
 
 function extract_hosts(hosts_config, options)

@@ -28,6 +28,18 @@ transport_response_mock = HTTP.Response(
   Dict("status" => 200)
 )
 
+validation_response_mock = HTTP.Response(
+  200,
+  Dict("Content-Type" => "application/json"),
+  Dict(
+    "name" => "Some name",
+    "version" => Dict(
+      "number" => "8.0.0",
+      "build_type" => "tar"
+    )
+  )
+)
+
 
 @testset "Testing ElasticTransport Client" begin
   @testset "Testing default initailization" begin
@@ -79,6 +91,56 @@ transport_response_mock = HTTP.Response(
     @test client.transport.http_client == CustomHTTP
   end
 
+  @testset "Testing verify elasticsearch" begin
+    @testset "When validation request successful" begin
+      client = Elasticsearch.ElasticTransport.Client()
+
+      transport_patch = @patch(
+        Elasticsearch.ElasticTransport.perform_request(
+          ::Elasticsearch.ElasticTransport.Transport, args...;kwargs...
+        ) = validation_response_mock
+      )
+
+      apply(transport_patch) do
+        Elasticsearch.ElasticTransport.verify_elasticsearch(client)
+
+        @test client.verified
+      end
+    end
+
+    @testset "When validation request Forbidden" begin
+      client = Elasticsearch.ElasticTransport.Client()
+
+      transport_patch = @patch(
+        Elasticsearch.ElasticTransport.perform_request(
+          ::Elasticsearch.ElasticTransport.Transport, args...;kwargs...
+        ) = throw(Elasticsearch.ElasticTransport.Forbidden(403, "Forbidden"))
+      )
+
+      apply(transport_patch) do
+        Elasticsearch.ElasticTransport.verify_elasticsearch(client)
+
+        @test client.verified
+      end
+    end
+
+    @testset "When validation request return error" begin
+      client = Elasticsearch.ElasticTransport.Client()
+
+      transport_patch = @patch(
+        Elasticsearch.ElasticTransport.perform_request(
+          ::Elasticsearch.ElasticTransport.Transport, args...;kwargs...
+        ) = throw(Elasticsearch.ElasticTransport.ServerError(500, "Server Error"))
+      )
+
+      apply(transport_patch) do
+        Elasticsearch.ElasticTransport.verify_elasticsearch(client)
+
+        @test !client.verified
+      end
+    end
+  end
+
   @testset "Testing performing request" begin
     client = Elasticsearch.ElasticTransport.Client()
 
@@ -91,6 +153,7 @@ transport_response_mock = HTTP.Response(
     apply(transport_patch) do
       response = Elasticsearch.ElasticTransport.perform_request(client, "GET", "/_cluster/health")
 
+      @test client.verified
       @test response == transport_response_mock
     end
   end

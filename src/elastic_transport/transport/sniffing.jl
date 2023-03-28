@@ -1,5 +1,4 @@
 using HTTP
-using Mocking
 
 const DEFAULT_SNIFFING_TIMEOUT = 1
 const SNIFFING_PROTOCOL = "http"
@@ -54,10 +53,10 @@ end
 
 function perform_sniff_request_with_timeout(transport::Transport)
   task = @task(
-    @mock perform_request(
+    perform_request(
       transport,
       "GET",
-      "_nodes/$SNIFFING_PROTOCOL",
+      "/_nodes/$SNIFFING_PROTOCOL",
       opts = Dict(:reload_on_failure => false)
     )
   )

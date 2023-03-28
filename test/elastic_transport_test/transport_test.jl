@@ -96,7 +96,7 @@ nodes_response_mock = HTTP.Response(
         "http" => Dict("publish_address" => "[::1]:9250")
       ), 
     )
-  )
+  ) |> JSON.json
 )
 
 @testset "Transport test" begin
@@ -197,13 +197,11 @@ nodes_response_mock = HTTP.Response(
 
   @testset "Testing sniffing" begin
     @testset "Testing successful sniffing" begin
-      perform_request_patch = @patch Elasticsearch.ElasticTransport.perform_request(
-        ::Elasticsearch.ElasticTransport.Transport, args...; kwargs...
-      ) = nodes_response_mock
+      http_patch = @patch HTTP.request(args...;kwargs...) = nodes_response_mock
 
       transport = Elasticsearch.ElasticTransport.Transport(;hosts, options=options)
 
-      apply(perform_request_patch) do
+      apply(http_patch) do
         hosts = Elasticsearch.ElasticTransport.sniff_hosts(transport) |>
           hosts -> sort(hosts, by = host -> host[:id])
 
@@ -225,29 +223,26 @@ nodes_response_mock = HTTP.Response(
     end
 
     @testset "Testing sniffing timeout" begin
-      perform_request_patch = @patch Elasticsearch.ElasticTransport.perform_request(
-        ::Elasticsearch.ElasticTransport.Transport, args...; kwargs...
-      ) = sleep(Elasticsearch.ElasticTransport.DEFAULT_SNIFFING_TIMEOUT + 0.5)
+      http_patch = @patch HTTP.request(args...;kwargs...) = sleep(Elasticsearch.ElasticTransport.DEFAULT_SNIFFING_TIMEOUT + 0.5)
 
       transport = Elasticsearch.ElasticTransport.Transport(;hosts, options=options)
 
-      apply(perform_request_patch) do
+      apply(http_patch) do
         @test_throws Elasticsearch.ElasticTransport.SniffingTimetoutError Elasticsearch.ElasticTransport.sniff_hosts(transport)
       end
     end
   end
 
   @testset "Testing reload connections" begin
-    nodes_request_patch = @patch Elasticsearch.ElasticTransport.perform_request(
-      ::Elasticsearch.ElasticTransport.Transport, args...; kwargs...
-    ) = nodes_response_mock
+    http_patch = @patch HTTP.request(args...;kwargs...) = nodes_response_mock
 
     transport = Elasticsearch.ElasticTransport.Transport(;hosts, options=options)
 
-    apply(nodes_request_patch) do
+    apply(http_patch) do
       Elasticsearch.ElasticTransport.reload_connections!(transport)
+      nodes = JSON.parse(String(nodes_response_mock.body))["nodes"]
 
-      @test length(transport.connections) == length(nodes_response_mock.body["nodes"])
+      @test length(transport.connections) == length(nodes)
     end
   end
 end
