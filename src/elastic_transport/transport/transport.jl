@@ -140,7 +140,7 @@ function perform_request(
   method::String,
   path::String;
   params=Dict(),
-  body::Union{Nothing,Dict}=nothing,
+  body::Union{Nothing,Dict,NamedTuple}=nothing,
   headers::Union{Nothing,Dict}=nothing,
   opts=Dict()
 )

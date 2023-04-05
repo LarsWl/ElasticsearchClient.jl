@@ -19,11 +19,12 @@ client_response_mock = HTTP.Response(
 )
 
 test_index = "test"
-test_body = Dict(
-  "query" => Dict(
-    "match_all" => Dict()
-  )
+test_body = (
+  query=(
+    match_all=(),
+  ),
 )
+
 test_sort = ["price:desc", "title:asc"]
 
 @testset "Testing search method" begin

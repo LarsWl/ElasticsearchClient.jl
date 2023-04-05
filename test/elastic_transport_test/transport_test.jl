@@ -136,6 +136,36 @@ nodes_response_mock = HTTP.Response(
         end
       end
 
+      @testset "Testing POST request with blank body" begin
+        http_patch = @patch HTTP.request(args...;kwargs...) = successful_search_response_mock
+
+        apply(http_patch) do
+          response = Elasticsearch.ElasticTransport.perform_request(transport, "POST", "/_search")
+
+          @test response isa HTTP.Response
+          @test response.status == 200
+          @test haskey(response.body, "took")
+        end
+      end
+
+      @testset "Testing POST request with NamedTuple body" begin
+        http_patch = @patch HTTP.request(args...;kwargs...) = successful_search_response_mock
+
+        body = (
+          query=(
+            match_all=(),
+          ),
+        )
+
+        apply(http_patch) do
+          response = Elasticsearch.ElasticTransport.perform_request(transport, "POST", "/_search")
+
+          @test response isa HTTP.Response
+          @test response.status == 200
+          @test haskey(response.body, "took")
+        end
+      end
+
       @testset "Testing unsuccessful response with retry" begin
         count_tries = 0
 

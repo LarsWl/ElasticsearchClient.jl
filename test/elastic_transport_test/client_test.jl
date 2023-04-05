@@ -156,5 +156,20 @@ validation_response_mock = HTTP.Response(
       @test client.verified
       @test response == transport_response_mock
     end
+
+    @testset "Testing request with NamedTuple body" begin
+      body = (
+        query=(
+          match_all=(),
+        ),
+      )
+
+      apply(transport_patch) do
+        response = Elasticsearch.ElasticTransport.perform_request(client, "POST", "/_search", body=body)
+
+        @test client.verified
+        @test response == transport_response_mock
+      end
+    end
   end
 end
