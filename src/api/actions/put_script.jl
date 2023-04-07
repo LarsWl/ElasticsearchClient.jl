@@ -1,5 +1,18 @@
 using Mocking
 
+"""
+Creates or updates a script.
+
+- `id::String`: Script ID
+- `context::String`: Script context
+- `timeout::DateTime`: Explicit operation timeout
+- `master_timeout::DateTime`: Specify timeout for connection to master
+- `headers::Dict`: Custom HTTP headers
+- `body::Union{Dict,NamedTuple}`: The document (*Required*)
+
+See https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html
+"""
+
 function put_script(client::Client; kwargs...)
   arguments = Dict(kwargs)
 

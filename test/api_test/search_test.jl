@@ -21,7 +21,7 @@ client_response_mock = HTTP.Response(
 test_index = "test"
 test_body = (
   query=(
-    match_all=(),
+    match_all=Dict(),
   ),
 )
 

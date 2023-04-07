@@ -11,21 +11,19 @@ client_response_mock = HTTP.Response(
     "content-type" => "application/json",
     "content-length" => 100
   ),
-  [
-    Dict(
-      "acknowledge" => true
-    )
-  ]
+  Dict(
+    "test_20230101" => Dict()
+  )
 )
 
 test_index = "test"
 
-@testset "Testing delete method" begin
+@testset "Testing get method" begin
   client = Elasticsearch.Client()
 
   client_patch = @patch Elasticsearch.ElasticTransport.perform_request(::Elasticsearch.ElasticTransport.Client, args...; kwargs...) = client_response_mock
 
   apply(client_patch) do
-    @test Elasticsearch.Indices.delete(client, index=test_index) isa Elasticsearch.API.Response
+    @test Elasticsearch.Indices.get(client, index=test_index) isa Elasticsearch.API.Response
   end
 end

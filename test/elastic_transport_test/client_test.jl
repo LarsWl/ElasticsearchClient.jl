@@ -160,7 +160,7 @@ validation_response_mock = HTTP.Response(
     @testset "Testing request with NamedTuple body" begin
       body = (
         query=(
-          match_all=(),
+          match_all=Dict(),
         ),
       )
 

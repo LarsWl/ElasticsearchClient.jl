@@ -50,7 +50,7 @@ Returns results matching a query.
 - `rest_total_hits_as_int::Bool`: Indicates whether hits.total should be rendered as an integer or an object in the rest search response
 - `min_compatible_shard_node::String`: The minimum compatible version that all shards involved in search should have for this request to be successful
 - `headers::Dict`: Custom HTTP headers
-- `body::Dict`: The search definition using the Query DSL
+- `body::Union{Dict,NamedTuple}`: The search definition using the Query DSL
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html
 """

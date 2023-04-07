@@ -14,10 +14,10 @@ using Elasticsearch
 
 client = Elasticsearch.Client()
 
-body = Dict(
-  "query" => Dict(
-    "match_all" => Dict()
-  )
+body = (
+  query=(
+    match_all=Dict(),
+  ),
 )
 
 response = Elasticsearch.search(client, body=body)
@@ -28,4 +28,7 @@ response = Elasticsearch.search(client, body=body)
 ```@docs
 Response
 search
+search_template
+put_script
+index
 ```

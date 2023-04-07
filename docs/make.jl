@@ -11,7 +11,9 @@ makedocs(
             "Client" => "Transport/client.md"
         ], 
         "Api" => [
-           "Base Actions" => "Api/index.md" 
+           "Base Actions" => "Api/index.md",
+           "Cat Actions" => "Api/cat.md",
+           "Indices Actions" => "Api/indices.md"
         ]
     ]
 )
