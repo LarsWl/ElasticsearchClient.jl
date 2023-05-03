@@ -140,7 +140,7 @@ function perform_request(
   method::String,
   path::String;
   params=Dict(),
-  body::Union{Nothing,Dict,NamedTuple}=nothing,
+  body::Union{Nothing,Dict,NamedTuple,String}=nothing,
   headers::Union{Nothing,Dict}=nothing,
   opts=Dict()
 )
@@ -169,7 +169,7 @@ function perform_request(
     url = Connections.full_url(connection, path, params)
 
     headers = Connections.parse_headers(connection, headers)
-    if !isnothing(body)
+    if !isnothing(body) && !isa(body, String)
       body = JSON.json(body)
     end
     body, headers = compress_request(transport, body, headers)

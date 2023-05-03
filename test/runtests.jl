@@ -15,6 +15,7 @@ tests = [
   "api_test/search_template_test.jl",
   "api_test/put_script_test.jl",
   "api_test/index_test.jl",
+  "api_test/bulk_test.jl",
   "api_test/cat/indices_test.jl",
   "api_test/indices/delete_test.jl",
   "api_test/indices/create_test.jl",

@@ -1,7 +1,7 @@
 module API
 
 export Cat, Indices
-export search, search_template, put_script, index
+export search, search_template, put_script, index, bulk
 
 using ..ElasticTransport
 
@@ -23,5 +23,6 @@ include("actions/search.jl")
 include("actions/search_template.jl")
 include("actions/put_script.jl")
 include("actions/index.jl")
+include("actions/bulk.jl")
 
 end

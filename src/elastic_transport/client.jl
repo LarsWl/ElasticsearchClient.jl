@@ -132,7 +132,7 @@ function perform_request(
   method::String,
   path::String;
   params=Dict(),
-  body::Union{Nothing,Dict,NamedTuple}=nothing,
+  body::Union{Nothing,Dict,NamedTuple,String}=nothing,
   headers::Union{Nothing,Dict}=nothing
 )
   if method == "GET" && !isnothing(body)
