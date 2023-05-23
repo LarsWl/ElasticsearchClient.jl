@@ -2,7 +2,7 @@
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://opensesame.github.io/Elasticsearch.jl)
 [![Coverage Status](https://coveralls.io/repos/github/OpenSesame/Elasticsearch.jl/badge.svg?branch=main&t=vPHtC7)](https://coveralls.io/github/OpenSesame/Elasticsearch.jl?branch=main)
 
-This library was inspired by elasticsearch-ruby and most of the implementation was taken from there.
+This library was inspired by [elasticsearch-ruby](https://github.com/elastic/elasticsearch-ruby) and most of the implementation was taken from there.
 
 There are two main modules: ElasticTransfort and API.
 
