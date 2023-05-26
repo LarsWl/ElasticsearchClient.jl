@@ -1,6 +1,6 @@
 module Indices
 
-using ..API: HTTP_GET, HTTP_DELETE, HTTP_PUT, HTTP_HEAD
+using ..API: HTTP_GET, HTTP_DELETE, HTTP_PUT, HTTP_HEAD, HTTP_POST
 using ..API: _listify, process_params
 using ..API: Response
 using ..ElasticTransport
@@ -10,5 +10,8 @@ include("create.jl")
 include("exists_alias.jl")
 include("get.jl")
 include("put_alias.jl")
+include("exists.jl")
+include("refresh.jl")
+include("update_aliases.jl")
 
 end

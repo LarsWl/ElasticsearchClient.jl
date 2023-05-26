@@ -12,7 +12,6 @@ Creates or updates a script.
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html
 """
-
 function put_script(client::Client; kwargs...)
   arguments = Dict(kwargs)
 

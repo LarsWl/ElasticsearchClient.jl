@@ -21,7 +21,6 @@ Creates or updates a document in an index.
 
 Ssee https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html
 """
-
 function index(client::Client; kwargs...)
   arguments = Dict(kwargs)
 

@@ -10,4 +10,7 @@ delete
 exists_alias
 put_alias
 get
+exists
+refresh
+update_aliases
 ```

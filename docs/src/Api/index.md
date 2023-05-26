@@ -31,4 +31,5 @@ search
 search_template
 put_script
 index
+bulk
 ```

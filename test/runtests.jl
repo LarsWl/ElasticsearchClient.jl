@@ -21,7 +21,9 @@ tests = [
   "api_test/indices/create_test.jl",
   "api_test/indices/exists_alias_test.jl",
   "api_test/indices/get_test.jl",
-  "api_test/indices/put_alias_test.jl"
+  "api_test/indices/put_alias_test.jl",
+  "api_test/indices/exists_test.jl",
+  "api_test/indices/refresh_test.jl"
 ]
 
 @info log("Running tests....")
