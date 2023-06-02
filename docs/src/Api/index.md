@@ -1,18 +1,18 @@
 # API Reference
 
 ```@meta
-CurrentModule = Elasticsearch.API
+CurrentModule = ElasticsearchClient.API
 ```
 
-High-level API to Elasticsearch. Each method receive Elasticsearch.Client and params as keyword arguments.
+High-level API to ElasticsearchClient. Each method receive ElasticsearchClient.Client and params as keyword arguments.
  Reponse similarto HTTP.Response, but it coverts body to String instead of CodeUnits or store body as Dict, if content type is application/json.
 
 ### Example
 
 ```julia
-using Elasticsearch
+using ElasticsearchClient
 
-client = Elasticsearch.Client()
+client = ElasticsearchClient.Client()
 
 body = (
   query=(
@@ -20,7 +20,7 @@ body = (
   ),
 )
 
-response = Elasticsearch.search(client, body=body)
+response = ElasticsearchClient.search(client, body=body)
 
 @show response.body["took"]
 ```

@@ -13,8 +13,7 @@ Allows to perform multiple index/update/delete operations in a single request.
 - `pipeline::String`: The pipeline id to preprocess incoming documents with
 - `require_alias::Bool`: Sets require_alias for all incoming documents. Defaults to unset (false)
 - `headers::Bool`: Custom HTTP headers
-- `body::Union{String,Vector}`: The operation definition and data (action-data pairs), separated by newlines. Array of Strings, Header/Data pairs,
- or the conveniency "combined" format can be passed, refer to Elasticsearch::API::Utils.__bulkify documentation.
+- `body::Union{String,Vector}`: The operation definition and data (action-data pairs), separated by newlines. Array of String or Dicts or NamedTuples
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
 """

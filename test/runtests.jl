@@ -1,4 +1,4 @@
-using Elasticsearch
+using ElasticsearchClient
 using Test
 using Dates
 

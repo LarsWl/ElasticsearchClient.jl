@@ -2,7 +2,7 @@
 # Client documentation
 
 ```@meta
-CurrentModule = Elasticsearch.ElasticTransport
+CurrentModule = ElasticsearchClient.ElasticTransport
 ```
 
 Client is a base struct, that parse hosts and create connections to Elastic cluster.
@@ -11,9 +11,9 @@ Client is a base struct, that parse hosts and create connections to Elastic clus
 ### Example
 
 ```julia
-using Elasticsearch
+using ElasticsearchClient
 
-client = Elasticsearch.Client(host=(host="localhost", port=9200, scheme="http"))
+client = ElasticsearchClient.Client(host=(host="localhost", port=9200, scheme="http"))
 
 perform_request(client, "GET", "/_search")
 ```

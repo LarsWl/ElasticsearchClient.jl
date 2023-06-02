@@ -1,3 +1,3 @@
-# Elasticsearch.jl
+# ElasticsearchClient.jl
 
-Documentation for Elasticsearch.jl
+Documentation for ElasticsearchClient.jl

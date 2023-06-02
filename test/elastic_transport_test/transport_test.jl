@@ -1,4 +1,4 @@
-using Elasticsearch
+using ElasticsearchClient
 using Test
 using Mocking
 using HTTP
@@ -101,7 +101,7 @@ nodes_response_mock = HTTP.Response(
 
 @testset "Transport test" begin
   @testset "Transport initialization" begin
-    transport = Elasticsearch.ElasticTransport.Transport(;hosts, options)
+    transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options)
 
     @test length(transport.connections.connections) == length(hosts)
     @test transport.use_compression == options[:compression]
@@ -109,14 +109,14 @@ nodes_response_mock = HTTP.Response(
   end
 
   @testset "Performing request" begin
-    transport = Elasticsearch.ElasticTransport.Transport(;hosts, options=options)
+    transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options)
 
     @testset "Testing with successful response" begin
       @testset "Testing GET request with params" begin
         http_patch = @patch HTTP.request(args...;kwargs...) = successful_health_response_mock
 
         apply(http_patch) do 
-          response = Elasticsearch.ElasticTransport.perform_request(transport, "GET", "/_cluster/health"; params = Dict("pretty" => true))
+          response = ElasticsearchClient.ElasticTransport.perform_request(transport, "GET", "/_cluster/health"; params = Dict("pretty" => true))
 
           @test response isa HTTP.Response
           @test response.status == 200
@@ -128,7 +128,7 @@ nodes_response_mock = HTTP.Response(
         http_patch = @patch HTTP.request(args...;kwargs...) = successful_search_response_mock
 
         apply(http_patch) do
-          response = Elasticsearch.ElasticTransport.perform_request(transport, "POST", "/_search"; body = Dict("query" => Dict("match_all" => Dict())))
+          response = ElasticsearchClient.ElasticTransport.perform_request(transport, "POST", "/_search"; body = Dict("query" => Dict("match_all" => Dict())))
 
           @test response isa HTTP.Response
           @test response.status == 200
@@ -140,7 +140,7 @@ nodes_response_mock = HTTP.Response(
         http_patch = @patch HTTP.request(args...;kwargs...) = successful_search_response_mock
 
         apply(http_patch) do
-          response = Elasticsearch.ElasticTransport.perform_request(transport, "POST", "/_search")
+          response = ElasticsearchClient.ElasticTransport.perform_request(transport, "POST", "/_search")
 
           @test response isa HTTP.Response
           @test response.status == 200
@@ -158,7 +158,7 @@ nodes_response_mock = HTTP.Response(
         )
 
         apply(http_patch) do
-          response = Elasticsearch.ElasticTransport.perform_request(transport, "POST", "/_search")
+          response = ElasticsearchClient.ElasticTransport.perform_request(transport, "POST", "/_search")
 
           @test response isa HTTP.Response
           @test response.status == 200
@@ -176,14 +176,14 @@ nodes_response_mock = HTTP.Response(
         end
 
         apply(http_patch) do
-          @test_throws Elasticsearch.ElasticTransport.NotFound Elasticsearch.ElasticTransport.perform_request(
+          @test_throws ElasticsearchClient.ElasticTransport.NotFound ElasticsearchClient.ElasticTransport.perform_request(
             transport,
             "POST",
             "/_search"; 
             body = Dict("query" => Dict("match_all" => Dict()))
           )
 
-          @test count_tries == Elasticsearch.ElasticTransport.DEFAULT_MAX_RETRIES
+          @test count_tries == ElasticsearchClient.ElasticTransport.DEFAULT_MAX_RETRIES
         end
       end
 
@@ -197,7 +197,7 @@ nodes_response_mock = HTTP.Response(
         end
 
         apply(http_patch) do
-          @test_throws Elasticsearch.ElasticTransport.InternalServerError Elasticsearch.ElasticTransport.perform_request(
+          @test_throws ElasticsearchClient.ElasticTransport.InternalServerError ElasticsearchClient.ElasticTransport.perform_request(
             transport,
             "POST",
             "/_search"; 
@@ -212,14 +212,14 @@ nodes_response_mock = HTTP.Response(
         http_patch = @patch HTTP.request(args...;kwargs...) = throw(HTTP.ConnectError("Error", "Error"))
 
         apply(http_patch) do
-          @test_throws HTTP.ConnectError Elasticsearch.ElasticTransport.perform_request(
+          @test_throws HTTP.ConnectError ElasticsearchClient.ElasticTransport.perform_request(
             transport,
             "POST",
             "/_search"; 
             body = Dict("query" => Dict("match_all" => Dict()))
           )
 
-          @test length(Elasticsearch.ElasticTransport.Connections.dead(transport.connections)) == 1
+          @test length(ElasticsearchClient.ElasticTransport.Connections.dead(transport.connections)) == 1
         end
       end
     end
@@ -229,10 +229,10 @@ nodes_response_mock = HTTP.Response(
     @testset "Testing successful sniffing" begin
       http_patch = @patch HTTP.request(args...;kwargs...) = nodes_response_mock
 
-      transport = Elasticsearch.ElasticTransport.Transport(;hosts, options=options)
+      transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options)
 
       apply(http_patch) do
-        hosts = Elasticsearch.ElasticTransport.sniff_hosts(transport) |>
+        hosts = ElasticsearchClient.ElasticTransport.sniff_hosts(transport) |>
           hosts -> sort(hosts, by = host -> host[:id])
 
         @test hosts[begin][:host] == "127.0.0.1"
@@ -253,12 +253,12 @@ nodes_response_mock = HTTP.Response(
     end
 
     @testset "Testing sniffing timeout" begin
-      http_patch = @patch HTTP.request(args...;kwargs...) = sleep(Elasticsearch.ElasticTransport.DEFAULT_SNIFFING_TIMEOUT + 0.5)
+      http_patch = @patch HTTP.request(args...;kwargs...) = sleep(ElasticsearchClient.ElasticTransport.DEFAULT_SNIFFING_TIMEOUT + 0.5)
 
-      transport = Elasticsearch.ElasticTransport.Transport(;hosts, options=options)
+      transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options)
 
       apply(http_patch) do
-        @test_throws Elasticsearch.ElasticTransport.SniffingTimetoutError Elasticsearch.ElasticTransport.sniff_hosts(transport)
+        @test_throws ElasticsearchClient.ElasticTransport.SniffingTimetoutError ElasticsearchClient.ElasticTransport.sniff_hosts(transport)
       end
     end
   end
@@ -266,10 +266,10 @@ nodes_response_mock = HTTP.Response(
   @testset "Testing reload connections" begin
     http_patch = @patch HTTP.request(args...;kwargs...) = nodes_response_mock
 
-    transport = Elasticsearch.ElasticTransport.Transport(;hosts, options=options)
+    transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options)
 
     apply(http_patch) do
-      Elasticsearch.ElasticTransport.reload_connections!(transport)
+      ElasticsearchClient.ElasticTransport.reload_connections!(transport)
       nodes = JSON.parse(String(nodes_response_mock.body))["nodes"]
 
       @test length(transport.connections) == length(nodes)

@@ -1,5 +1,5 @@
 using Test
-using Elasticsearch
+using ElasticsearchClient
 using Mocking
 using HTTP
 
@@ -19,11 +19,11 @@ client_response_mock = HTTP.Response(
 )
 
 @testset "Testing create method" begin
-  client = Elasticsearch.Client()
+  client = ElasticsearchClient.Client()
 
-  client_patch = @patch Elasticsearch.ElasticTransport.perform_request(::Elasticsearch.ElasticTransport.Client, args...; kwargs...) = client_response_mock
+  client_patch = @patch ElasticsearchClient.ElasticTransport.perform_request(::ElasticsearchClient.ElasticTransport.Client, args...; kwargs...) = client_response_mock
 
   apply(client_patch) do
-    @test Elasticsearch.Indices.update_aliases(client) isa Elasticsearch.API.Response
+    @test ElasticsearchClient.Indices.update_aliases(client) isa ElasticsearchClient.API.Response
   end
 end

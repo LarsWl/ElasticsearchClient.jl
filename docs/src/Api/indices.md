@@ -1,7 +1,7 @@
 # Indices API Reference
 
 ```@meta
-CurrentModule = Elasticsearch.API.Indices
+CurrentModule = ElasticsearchClient.API.Indices
 ```
 
 ```@docs

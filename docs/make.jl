@@ -1,10 +1,10 @@
 using Documenter
-using Elasticsearch
+using ElasticsearchClient
 
 makedocs(
-    sitename = "Elasticsearch",
+    sitename = "ElasticsearchClient",
     format = Documenter.HTML(),
-    modules = [Elasticsearch],
+    modules = [ElasticsearchClient],
     pages = [
         "Home" => "index.md",
         "Transport" => [
@@ -18,4 +18,4 @@ makedocs(
     ]
 )
 
-deploydocs(repo = "github.com/OpenSesame/Elasticsearch.jl.git")
+deploydocs(repo = "github.com/OpenSesame/ElasticsearchClient.jl.git")

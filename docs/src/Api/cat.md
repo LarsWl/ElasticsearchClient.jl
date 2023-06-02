@@ -1,7 +1,7 @@
 # Cat API Reference
 
 ```@meta
-CurrentModule = Elasticsearch.API.Cat
+CurrentModule = ElasticsearchClient.API.Cat
 ```
 
 ```@docs

@@ -1,5 +1,5 @@
 using Test
-using Elasticsearch
+using ElasticsearchClient
 using Mocking
 using HTTP
 
@@ -25,12 +25,12 @@ test_body = Dict(
 test_context = ["test_context1", "test_context2"]
 
 @testset "Testing search method" begin
-  client = Elasticsearch.Client()
+  client = ElasticsearchClient.Client()
 
-  client_patch = @patch Elasticsearch.ElasticTransport.perform_request(::Elasticsearch.ElasticTransport.Client, args...; kwargs...) = client_response_mock
+  client_patch = @patch ElasticsearchClient.ElasticTransport.perform_request(::ElasticsearchClient.ElasticTransport.Client, args...; kwargs...) = client_response_mock
 
   apply(client_patch) do
-    @test Elasticsearch.put_script(client, id=test_id, body=test_body) isa Elasticsearch.API.Response
-    @test Elasticsearch.put_script(client, id=test_id, body=test_body, context=test_context) isa Elasticsearch.API.Response
+    @test ElasticsearchClient.put_script(client, id=test_id, body=test_body) isa ElasticsearchClient.API.Response
+    @test ElasticsearchClient.put_script(client, id=test_id, body=test_body, context=test_context) isa ElasticsearchClient.API.Response
   end
 end

@@ -1,4 +1,4 @@
-using Elasticsearch
+using ElasticsearchClient
 using Test
 using URIs
 using Mocking
@@ -43,7 +43,7 @@ validation_response_mock = HTTP.Response(
 
 @testset "Testing ElasticTransport Client" begin
   @testset "Testing default initailization" begin
-    client = Elasticsearch.ElasticTransport.Client()
+    client = ElasticsearchClient.ElasticTransport.Client()
 
     @test length(client.hosts) == 1
     @test client.hosts[begin][:host] == "localhost"
@@ -58,7 +58,7 @@ validation_response_mock = HTTP.Response(
       Dict{Symbol, Any}(:host => "aws_host", :port => 9200),
     ]
 
-    client = Elasticsearch.ElasticTransport.Client(hosts=hosts, delay_on_retry=10, retry_on_status=[400, 404])
+    client = ElasticsearchClient.ElasticTransport.Client(hosts=hosts, delay_on_retry=10, retry_on_status=[400, 404])
 
     @test length(client.hosts) == 3
     @test client.transport.options[:delay_on_retry] == 10
@@ -68,7 +68,7 @@ validation_response_mock = HTTP.Response(
   @testset "Testing initialization with URI and custom args" begin
     host = URI("https://127.0.0.1:8080")
 
-    client = Elasticsearch.ElasticTransport.Client(host=host, compression=true, transport_options=Dict(:resurrect_timeout => 10))
+    client = ElasticsearchClient.ElasticTransport.Client(host=host, compression=true, transport_options=Dict(:resurrect_timeout => 10))
 
     @test length(client.hosts) == 1
     @test client.transport.use_compression
@@ -77,7 +77,7 @@ validation_response_mock = HTTP.Response(
   @testset "Testing initialization with strings urls" begin
     hosts = "https://127.0.0.1:8080,https://usr:pwd@127.0.0.1,http://aws_host.com"
 
-    client = Elasticsearch.ElasticTransport.Client(urls=hosts)
+    client = ElasticsearchClient.ElasticTransport.Client(urls=hosts)
 
     @test length(client.hosts) == 3
   end
@@ -85,7 +85,7 @@ validation_response_mock = HTTP.Response(
   @testset "Testing initialization with NamedTuple and custom http client" begin
     host = (host="localhost", schema="http", port=9200)
 
-    client = Elasticsearch.ElasticTransport.Client(url=host, http_client=CustomHTTP)
+    client = ElasticsearchClient.ElasticTransport.Client(url=host, http_client=CustomHTTP)
 
     @test length(client.hosts) == 1
     @test client.transport.http_client == CustomHTTP
@@ -93,48 +93,48 @@ validation_response_mock = HTTP.Response(
 
   @testset "Testing verify elasticsearch" begin
     @testset "When validation request successful" begin
-      client = Elasticsearch.ElasticTransport.Client()
+      client = ElasticsearchClient.ElasticTransport.Client()
 
       transport_patch = @patch(
-        Elasticsearch.ElasticTransport.perform_request(
-          ::Elasticsearch.ElasticTransport.Transport, args...;kwargs...
+        ElasticsearchClient.ElasticTransport.perform_request(
+          ::ElasticsearchClient.ElasticTransport.Transport, args...;kwargs...
         ) = validation_response_mock
       )
 
       apply(transport_patch) do
-        Elasticsearch.ElasticTransport.verify_elasticsearch(client)
+        ElasticsearchClient.ElasticTransport.verify_elasticsearch(client)
 
         @test client.verified
       end
     end
 
     @testset "When validation request Forbidden" begin
-      client = Elasticsearch.ElasticTransport.Client()
+      client = ElasticsearchClient.ElasticTransport.Client()
 
       transport_patch = @patch(
-        Elasticsearch.ElasticTransport.perform_request(
-          ::Elasticsearch.ElasticTransport.Transport, args...;kwargs...
-        ) = throw(Elasticsearch.ElasticTransport.Forbidden(403, "Forbidden"))
+        ElasticsearchClient.ElasticTransport.perform_request(
+          ::ElasticsearchClient.ElasticTransport.Transport, args...;kwargs...
+        ) = throw(ElasticsearchClient.ElasticTransport.Forbidden(403, "Forbidden"))
       )
 
       apply(transport_patch) do
-        Elasticsearch.ElasticTransport.verify_elasticsearch(client)
+        ElasticsearchClient.ElasticTransport.verify_elasticsearch(client)
 
         @test client.verified
       end
     end
 
     @testset "When validation request return error" begin
-      client = Elasticsearch.ElasticTransport.Client()
+      client = ElasticsearchClient.ElasticTransport.Client()
 
       transport_patch = @patch(
-        Elasticsearch.ElasticTransport.perform_request(
-          ::Elasticsearch.ElasticTransport.Transport, args...;kwargs...
-        ) = throw(Elasticsearch.ElasticTransport.ServerError(500, "Server Error"))
+        ElasticsearchClient.ElasticTransport.perform_request(
+          ::ElasticsearchClient.ElasticTransport.Transport, args...;kwargs...
+        ) = throw(ElasticsearchClient.ElasticTransport.ServerError(500, "Server Error"))
       )
 
       apply(transport_patch) do
-        Elasticsearch.ElasticTransport.verify_elasticsearch(client)
+        ElasticsearchClient.ElasticTransport.verify_elasticsearch(client)
 
         @test !client.verified
       end
@@ -142,16 +142,16 @@ validation_response_mock = HTTP.Response(
   end
 
   @testset "Testing performing request" begin
-    client = Elasticsearch.ElasticTransport.Client()
+    client = ElasticsearchClient.ElasticTransport.Client()
 
     transport_patch = @patch(
-      Elasticsearch.ElasticTransport.perform_request(
-        ::Elasticsearch.ElasticTransport.Transport, args...;kwargs...
+      ElasticsearchClient.ElasticTransport.perform_request(
+        ::ElasticsearchClient.ElasticTransport.Transport, args...;kwargs...
       ) = transport_response_mock
     )
 
     apply(transport_patch) do
-      response = Elasticsearch.ElasticTransport.perform_request(client, "GET", "/_cluster/health")
+      response = ElasticsearchClient.ElasticTransport.perform_request(client, "GET", "/_cluster/health")
 
       @test client.verified
       @test response == transport_response_mock
@@ -165,7 +165,7 @@ validation_response_mock = HTTP.Response(
       )
 
       apply(transport_patch) do
-        response = Elasticsearch.ElasticTransport.perform_request(client, "POST", "/_search", body=body)
+        response = ElasticsearchClient.ElasticTransport.perform_request(client, "POST", "/_search", body=body)
 
         @test client.verified
         @test response == transport_response_mock

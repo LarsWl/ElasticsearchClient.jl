@@ -1,5 +1,5 @@
 using Test
-using Elasticsearch
+using ElasticsearchClient
 using Mocking
 using HTTP
 
@@ -25,12 +25,12 @@ test_body = (
 id="some-id"
 
 @testset "Testing index method" begin
-  client = Elasticsearch.Client()
+  client = ElasticsearchClient.Client()
 
-  client_patch = @patch Elasticsearch.ElasticTransport.perform_request(::Elasticsearch.ElasticTransport.Client, args...; kwargs...) = client_response_mock
+  client_patch = @patch ElasticsearchClient.ElasticTransport.perform_request(::ElasticsearchClient.ElasticTransport.Client, args...; kwargs...) = client_response_mock
 
   apply(client_patch) do
-    @test Elasticsearch.index(client, index=test_index, body=test_body) isa Elasticsearch.API.Response
-    @test Elasticsearch.index(client, index=test_index, body=test_body,id=id) isa Elasticsearch.API.Response
+    @test ElasticsearchClient.index(client, index=test_index, body=test_body) isa ElasticsearchClient.API.Response
+    @test ElasticsearchClient.index(client, index=test_index, body=test_body,id=id) isa ElasticsearchClient.API.Response
   end
 end

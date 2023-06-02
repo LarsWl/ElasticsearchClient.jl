@@ -1,4 +1,4 @@
-module Elasticsearch
+module ElasticsearchClient
 
 include("version.jl")
 
@@ -8,4 +8,4 @@ include("api/API.jl")
 using .ElasticTransport
 using .API
 
-end # module Elasticsearch
+end

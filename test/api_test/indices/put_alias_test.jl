@@ -1,5 +1,5 @@
 using Test
-using Elasticsearch
+using ElasticsearchClient
 using Mocking
 using HTTP
 
@@ -20,11 +20,11 @@ test_index = "test"
 test_name = "tst"
 
 @testset "Testing put_alias method" begin
-  client = Elasticsearch.Client()
+  client = ElasticsearchClient.Client()
 
-  client_patch = @patch Elasticsearch.ElasticTransport.perform_request(::Elasticsearch.ElasticTransport.Client, args...; kwargs...) = client_response_mock
+  client_patch = @patch ElasticsearchClient.ElasticTransport.perform_request(::ElasticsearchClient.ElasticTransport.Client, args...; kwargs...) = client_response_mock
 
   apply(client_patch) do
-    @test Elasticsearch.Indices.put_alias(client, name=test_name,index=test_index) isa Elasticsearch.API.Response
+    @test ElasticsearchClient.Indices.put_alias(client, name=test_name,index=test_index) isa ElasticsearchClient.API.Response
   end
 end

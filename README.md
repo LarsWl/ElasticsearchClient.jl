@@ -1,4 +1,4 @@
-# Elasticsearch.jl
+# ElasticsearchClient.jl
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://opensesame.github.io/Elasticsearch.jl)
 [![Coverage Status](https://coveralls.io/repos/github/OpenSesame/Elasticsearch.jl/badge.svg?branch=main&t=vPHtC7)](https://coveralls.io/github/OpenSesame/Elasticsearch.jl?branch=main)
 
@@ -12,10 +12,10 @@ There are two main modules: ElasticTransfort and API.
 ### Example of using ElasticTransort
 
 ```julia
-using Elasticsearch
+using ElasticsearchClient
 
 # Client is exported from ElasticTransport
-client = Elasticsearch.Client(host=(host="localhost", port=9200, scheme="http"))
+client = ElasticsearchClient.Client(host=(host="localhost", port=9200, scheme="http"))
 
 perform_request(client, "GET", "/_search")
 ```
@@ -23,9 +23,9 @@ perform_request(client, "GET", "/_search")
 ### Example of using API
 
 ```julia
-using Elasticsearch
+using ElasticsearchClient
 
-client = Elasticsearch.Client()
+client = ElasticsearchClient.Client()
 
 body = (
   query=(
@@ -34,7 +34,7 @@ body = (
 )
 
 # Methods are exported from API module
-response = Elasticsearch.search(client, body=body)
+response = ElasticsearchClient.search(client, body=body)
 
 @show response.body["took"]
 ```
