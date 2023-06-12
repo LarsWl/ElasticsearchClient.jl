@@ -41,4 +41,4 @@ response = ElasticsearchClient.search(client, body=body)
 
 ## What's next?
 
-More information about usage can be found in the [documentation](https://opensesame.github.io/Elasticsearch.jl).
+More information about usage can be found in the [documentation](https://opensesame.github.io/ElasticsearchClient.jl).
