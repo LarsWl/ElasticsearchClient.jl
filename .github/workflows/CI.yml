@@ -45,7 +45,7 @@ jobs:
         env:
           JULIA_COVERAGE_BLACK_HOLE_SERVER_URL_PUT: https://httpbingo.julialang.org/put
       # submit coverage data to a black hole server, and collect new coverage data on that
-      - run: julia --color=yes --project=. --code-coverage=user etc/coverage.jl
+      - run: julia --color=yes --code-coverage=user etc/coverage.jl
         working-directory: ${{ github.workspace }}
       - name: Coveralls
         uses: coverallsapp/github-action@master
