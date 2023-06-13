@@ -6,4 +6,4 @@ using Coverage
 
 coverage = process_folder()
 
-LCOV.writefile(joinpath(@__DIR__, "..", "coverage.jl", "lcov.info"), coverage)
+LCOV.writefile(joinpath(@__DIR__, "..", "coverage", "lcov.info"), coverage)
