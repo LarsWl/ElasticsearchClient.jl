@@ -32,4 +32,6 @@ search_template
 put_script
 index
 bulk
+delete
+delete_by_query
 ```

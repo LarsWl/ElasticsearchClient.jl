@@ -1,7 +1,7 @@
 module API
 
 export Cat, Indices
-export search, search_template, put_script, index, bulk
+export search, search_template, put_script, index, bulk, delete_by_query, delete
 
 using ..ElasticTransport
 
@@ -24,5 +24,7 @@ include("actions/search_template.jl")
 include("actions/put_script.jl")
 include("actions/index.jl")
 include("actions/bulk.jl")
+include("actions/delete_by_query.jl")
+include("actions/delete.jl")
 
 end

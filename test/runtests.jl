@@ -16,6 +16,8 @@ tests = [
   "api_test/put_script_test.jl",
   "api_test/index_test.jl",
   "api_test/bulk_test.jl",
+  "api_test/delete_test.jl",
+  "api_test/delete_by_query_test.jl",
   "api_test/cat/indices_test.jl",
   "api_test/indices/delete_test.jl",
   "api_test/indices/create_test.jl",
@@ -23,7 +25,7 @@ tests = [
   "api_test/indices/get_test.jl",
   "api_test/indices/put_alias_test.jl",
   "api_test/indices/exists_test.jl",
-  "api_test/indices/refresh_test.jl"
+  "api_test/indices/refresh_test.jl",
 ]
 
 @info log("Running tests....")

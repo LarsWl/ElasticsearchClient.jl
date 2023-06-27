@@ -1,6 +1,6 @@
 """
 Allows to perform multiple index/update/delete operations in a single request.
-#
+
 - `index::String`: Default index for items which don't provide one
 - `wait_for_active_shards::String`: Sets the number of shard copies that must be active before proceeding with the bulk operation. Defaults to 1, meaning the primary shard only. Set to `all` for all shard copies, otherwise set to any non-negative value less than or equal to the total number of copies for the shard (number of replicas + 1)
 - `refresh::String`: If `true` then refresh the affected shards to make this operation visible to search, if `wait_for` then wait for a refresh to make this operation visible to search, if `false` (the default) then do nothing with refreshes. (options: true, false, wait_for)

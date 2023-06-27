@@ -19,7 +19,7 @@ Creates or updates a document in an index.
 - `headers::Dict`: Custom HTTP headers
 - `body::Union{NamedTuple,Dict}`: The document (*Required*)
 
-Ssee https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html
+See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html
 """
 function index(client::Client; kwargs...)
   arguments = Dict(kwargs)
