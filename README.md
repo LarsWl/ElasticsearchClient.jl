@@ -39,6 +39,42 @@ response = ElasticsearchClient.search(client, body=body)
 @show response.body["took"]
 ```
 
+## Authentication
+
+If you need to use authentication, you can use custom http client with additional middleware layers.
+
+Example:
+
+```julia
+# Example from HTTP.jl docs: https://juliaweb.github.io/HTTP.jl/stable/client/#Quick-Examples
+module Auth
+
+using HTTP
+
+function auth_layer(handler)
+    # returns a `Handler` function; check for a custom keyword arg `authcreds` that
+    # a user would pass like `HTTP.get(...; authcreds=creds)`.
+    # We also accept trailing keyword args `kw...` and pass them along later.
+    return function(req; authcreds=nothing, kw...)
+        # only apply the auth layer if the user passed `authcreds`
+        if authcreds !== nothing
+            # we add a custom header with stringified auth creds
+            HTTP.setheader(req, "X-Auth-Creds" => string(authcreds))
+        end
+        # pass the request along to the next layer by calling `auth_layer` arg `handler`
+        # also pass along the trailing keyword args `kw...`
+        return handler(req; kw...)
+    end
+end
+
+# Create a new client with the auth layer added
+HTTP.@client [auth_layer]
+
+end
+
+client = ElasticsearchClient.Client(http_client=Auth)
+```
+
 ## What's next?
 
 More information about usage can be found in the [documentation](https://opensesame.github.io/ElasticsearchClient.jl).
