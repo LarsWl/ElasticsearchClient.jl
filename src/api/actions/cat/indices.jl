@@ -20,12 +20,9 @@ Returns information about indices: number of primaries and replicas, document co
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/cat-indices.html
 """
-function indices(client::Client; kwargs...)
+function indices(client::Client; index=nothing, headers=Dict(), auth_params=nothing, kwargs...)
   arguments = Dict(kwargs)
 
-  headers = pop!(arguments, :headers, Dict())
-  body = nothing
-  index = pop!(arguments, :index, nothing)
   method = HTTP_GET
 
   path = if !isnothing(index)
@@ -37,6 +34,6 @@ function indices(client::Client; kwargs...)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing)
   )
 end

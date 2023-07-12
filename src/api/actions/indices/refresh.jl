@@ -11,13 +11,8 @@ Performs the refresh operation in one or more indices.
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-refresh.html
 """
-function refresh(client::Client; kwargs...)
+function refresh(client::Client; index=nothing, headers=Dict(), auth_params=nothing, kwargs...)
   arguments = Dict(kwargs)
-
-  headers = pop!(arguments, :headers, Dict())
-  index = pop!(arguments, :index, nothing)
-
-  body = nothing
   
   method = HTTP_POST
   path = if !isnothing(index)
@@ -28,6 +23,6 @@ function refresh(client::Client; kwargs...)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing)
   )
 end

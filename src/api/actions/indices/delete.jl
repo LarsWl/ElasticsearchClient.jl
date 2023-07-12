@@ -13,21 +13,14 @@ Deletes an index.
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-delete-index.html
 """
-function delete(client::Client; kwargs...)
+function delete(client::Client; index, headers=Dict(), auth_params=nothing, kwargs...)
   arguments = Dict(kwargs)
-
-  !haskey(arguments, :index) && throw(ArgumentError("Required argument 'index' missing"))
-
-  headers = pop!(arguments, :headers, Dict())
-  body = nothing
-
-  index = pop!(arguments, :index)
 
   method = HTTP_DELETE
   path = "/$(_listify(index))"
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing)
   )
 end

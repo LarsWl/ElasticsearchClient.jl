@@ -11,10 +11,8 @@ module CustomHTTP
 using HTTP
 
 function custom_layer(handler)
-  return function(req, kw...)
-    @show req
-
-    return hanler(req, kw...)
+  return function(req; kw...)
+    return handler(req, kw...)
   end
 end
 

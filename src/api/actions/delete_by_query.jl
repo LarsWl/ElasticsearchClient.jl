@@ -38,16 +38,8 @@ Deletes documents matching the provided query.
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-delete-by-query.html
 """
-function delete_by_query(client::Client; kwargs...)
+function delete_by_query(client::Client; body, index, headers=Dict(), auth_params=nothing, kwargs...)
   arguments = Dict(kwargs)
-
-  !haskey(arguments, :body) && throw(ArgumentError("Required argument 'body' missing"))
-  !haskey(arguments, :index) && throw(ArgumentError("Required argument 'index' missing"))
-
-  headers = pop!(arguments, :headers, Dict())
-
-  body = pop!(arguments, :body)
-  index = pop!(arguments, :index)
 
   method = HTTP_POST
 
@@ -55,6 +47,6 @@ function delete_by_query(client::Client; kwargs...)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body)
   )
 end

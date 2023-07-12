@@ -54,13 +54,8 @@ Returns results matching a query.
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/search-search.html
 """
-function search(client::Client; kwargs...)
+function search(client::Client; body=nothing, index=nothing, headers=Dict(), auth_params=nothing, kwargs...)
   arguments = Dict(kwargs)
-
-  headers = pop!(arguments, :headers, Dict())
-  body = pop!(arguments, :body, nothing)
-
-  index = pop!(arguments, :index, nothing)
 
   method = if isnothing(body)
     HTTP_GET
@@ -77,6 +72,6 @@ function search(client::Client; kwargs...)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body)
   )
 end

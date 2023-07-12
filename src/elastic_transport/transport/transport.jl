@@ -140,6 +140,7 @@ function perform_request(
   method::String,
   path::String;
   params=Dict(),
+  auth_params=nothing,
   body::Union{Nothing,Dict,NamedTuple,String}=nothing,
   headers::Union{Nothing,Dict}=nothing,
   opts=Dict()
@@ -175,7 +176,13 @@ function perform_request(
     body, headers = compress_request(transport, body, headers)
 
     @debug "Starting request..."
-    response = @mock transport.http_client.request(method, url; headers=headers, body=body, status_exception=false)
+    response = @mock transport.http_client.request(
+      method, url;
+      headers=headers,
+      body=body,
+      status_exception=false,
+      auth_params=auth_params
+    )
     connection.failures > 0 && healthy!(connection)
 
     if response.status >= 300 && in(response.status, transport.retry_on_status)

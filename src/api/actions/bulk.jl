@@ -17,15 +17,8 @@ Allows to perform multiple index/update/delete operations in a single request.
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
 """
-function bulk(client::Client; kwargs...)
+function bulk(client::Client; body, index=nothing, headers=Dict(), auth_params=nothing, kwargs...)
   arguments = Dict(kwargs)
-
-  !haskey(arguments, :body) && throw(ArgumentError("Required argument 'body' missing"))
-
-  headers = pop!(arguments, :headers, Dict())
-
-  body = pop!(arguments, :body)
-  index = pop!(arguments, :index, nothing)
 
   method = HTTP_POST
 
@@ -43,6 +36,6 @@ function bulk(client::Client; kwargs...)
   end
 
   Response(
-    @mock perform_request(client, method, path; params=params, headers=headers, body=payload)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=payload)
   )
 end
