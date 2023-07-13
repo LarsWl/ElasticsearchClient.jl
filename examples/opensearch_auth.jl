@@ -47,7 +47,7 @@ using ElasticsearchClient
 using AWS
 
 client = ElasticsearchClient.Client(
-  host=Dict(:host => "search-search-dev-zp3ihjtqii7ngqpdq4k52a33c4.us-west-1.es.amazonaws.com", :port => 443, :scheme => "https"),
+  host=Dict(:host => "search-opensearh-domain", :port => 443, :scheme => "https"),
   http_client=OpenSearchAuth
 )
 
