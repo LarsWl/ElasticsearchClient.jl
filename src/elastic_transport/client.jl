@@ -132,6 +132,7 @@ function perform_request(
   method::String,
   path::String;
   params=Dict(),
+  auth_params=nothing,
   body::Union{Nothing,Dict,NamedTuple,String}=nothing,
   headers::Union{Nothing,Dict}=nothing
 )
@@ -143,7 +144,15 @@ function perform_request(
     verify_elasticsearch(client)
   end
 
-  @mock perform_request(client.transport, method, path; params=params, body=body, headers=headers)
+  @mock perform_request(
+    client.transport,
+    method,
+    path;
+    params=params,
+    auth_params=auth_params,
+    body=body,
+    headers=headers
+  )
 end
 
 function extract_hosts(hosts_config, options)

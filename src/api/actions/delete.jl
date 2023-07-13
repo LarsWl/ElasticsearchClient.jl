@@ -17,17 +17,8 @@ Removes a document from the index.
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-delete.html
 """
-function delete(client::Client; kwargs...)
+function delete(client::Client; index, id, headers=Dict(), auth_params=nothing, kwargs...)
   arguments = Dict(kwargs)
-
-  !haskey(arguments, :id) && throw(ArgumentError("Required argument 'id' missing"))
-  !haskey(arguments, :index) && throw(ArgumentError("Required argument 'index' missing"))
-
-  headers = pop!(arguments, :headers, Dict())
-  body = nothing
-
-  id = pop!(arguments, :id)
-  index = pop!(arguments, :index)
 
   method = HTTP_DELETE
 
@@ -35,6 +26,6 @@ function delete(client::Client; kwargs...)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing)
   )
 end

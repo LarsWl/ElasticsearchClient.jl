@@ -12,16 +12,8 @@ Creates or updates a script.
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html
 """
-function put_script(client::Client; kwargs...)
+function put_script(client::Client; body, id, context=nothing, headers=Dict(), auth_params=nothing, kwargs...)
   arguments = Dict(kwargs)
-
-  !haskey(arguments, :body) && throw(ArgumentError("Required argument 'body' missing"))
-  !haskey(arguments, :id) && throw(ArgumentError("Required argument 'id' missing"))
-
-  headers = pop!(arguments, :headers, Dict())
-  body = pop!(arguments, :body)
-  id = pop!(arguments, :id)
-  context = pop!(arguments, :context, nothing)
 
   method = HTTP_PUT
 
@@ -33,6 +25,6 @@ function put_script(client::Client; kwargs...)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body)
   )
 end

@@ -21,18 +21,8 @@ Creates or updates a document in an index.
 
 See https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html
 """
-function index(client::Client; kwargs...)
+function index(client::Client; body, index, id=nothing, headers=Dict(), auth_params=nothing, kwargs...)
   arguments = Dict(kwargs)
-
-  !haskey(arguments, :body) && throw(ArgumentError("Required argument 'body' missing"))
-  !haskey(arguments, :index) && throw(ArgumentError("Required argument 'index' missing"))
-
-  headers = pop!(arguments, :headers, Dict())
-
-  body = pop!(arguments, :body)
-  index = pop!(arguments, :index)
-
-  id = pop!(arguments, :id, nothing)
 
   method = isnothing(id) ? HTTP_POST : HTTP_PUT
 
@@ -44,6 +34,6 @@ function index(client::Client; kwargs...)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body)
   )
 end

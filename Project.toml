@@ -1,7 +1,7 @@
 name = "ElasticsearchClient"
 uuid = "e586a49d-aa29-4ce5-8f91-fa4f824367bd"
 authors = ["Egor Shmorgun <egor.shmorgun@opensesame.com>"]
-version = "0.2.6"
+version = "0.2.7"
 
 [deps]
 CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
