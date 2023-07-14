@@ -75,6 +75,41 @@ end
 client = ElasticsearchClient.Client(http_client=Auth)
 ```
 
+## How to install Elasticsearch locally?
+
+The easiest way is to use a Docker container. If you have [Docker Desktop](https://www.docker.com/products/docker-desktop/), then just copy the the `docker-compose.yml`:
+```yaml
+version: '3.8'
+services:
+  es01:
+    image: 'docker.elastic.co/elasticsearch/elasticsearch:8.8.2'
+    ports:
+      - '0.0.0.0:9200:9200'
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    restart: always
+    environment:
+      - node.name=es01
+      - cluster.name=es_local_claster
+      - cluster.initial_master_nodes=es01
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+    mem_limit: 1073741824
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+volumes:
+  esdata:
+    driver: local
+
+```
+
+and run the `docker-compose up` command in the directory containing that file.
+
+If you want to configure a cluster [see full instructions](https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker)
+
+
 ## What's next?
 
 More information about usage can be found in the [documentation](https://opensesame.github.io/ElasticsearchClient.jl).
