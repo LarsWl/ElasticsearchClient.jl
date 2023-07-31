@@ -82,10 +82,10 @@ function Client(;http_client::Module=HTTP, kwargs...)
   )
 end
 
-function verify_elasticsearch(client::Client)
+function verify_elasticsearch(client::Client; auth_params=nothing)
   response = nothing
   try
-    response = elastisearch_validation_request(client)
+    response = elastisearch_validation_request(client, auth_params=auth_params)
   catch exc
     if typeof(exc) in [Forbidden, Unauthorized, RequestEntityTooLarge]
       client.verified = true
@@ -109,8 +109,8 @@ function verify_with_version_and_headers(client::Client, _headers, _version)
   client.verified = true
 end
 
-function elastisearch_validation_request(client::Client)
-  @mock perform_request(client.transport, "GET", "/")
+function elastisearch_validation_request(client::Client; auth_params=nothing)
+  @mock perform_request(client.transport, "GET", "/", auth_params=auth_params)
 end
 
 """
@@ -141,7 +141,7 @@ function perform_request(
   end
 
   if !client.verified
-    verify_elasticsearch(client)
+    verify_elasticsearch(client, auth_params=auth_params)
   end
 
   @mock perform_request(
