@@ -56,3 +56,28 @@ function _bulkify(payload::Vector{String})
 
   join(payload, "\n")
 end
+
+function extract_options(arguments::AbstractDict)::AbstractDict
+  options = Dict{Symbol, Any}()
+
+  extract_option_if_exist!(options, arguments, :reload_on_failure)
+  extract_option_if_exist!(options, arguments, :delay_on_retry)
+  extract_option_if_exist!(options, arguments, :verbose)
+  extract_option_if_exist!(options, arguments, :ignore)
+
+  options
+end
+
+function extract_option_if_exist!(options::AbstractDict, arguments::AbstractDict, option_name::Symbol)
+  option_value = pop!(arguments, option_name, nothing)
+
+  if !isnothing(option_value)
+    options[option_name] = option_value
+  end
+end
+
+function set_ignore_on_not_found!(options::AbstractDict)
+  ignore = get!(() -> Integer[], options, :ignore)
+
+  push!(ignore, 404)
+end

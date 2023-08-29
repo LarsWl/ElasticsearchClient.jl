@@ -25,18 +25,13 @@ function exists_alias(client::Client; index=nothing, name, headers=Dict(), auth_
   else
     "/_alias/$(_listify(name))"
   end
+  options = extract_options(arguments)
+  set_ignore_on_not_found!(options)
   params = process_params(arguments)
 
-  try
-    response = Response(
-      @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing)
-    )
-    response.status == 200 ? true : false
-  catch exc
-    if exc isa ElasticTransport.ServerException && exc.status == 404
-      return false
-    else
-      throw(exc)
-    end
-  end
+  response = Response(
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing, opts=options)
+  )
+  
+  response.status == 200
 end

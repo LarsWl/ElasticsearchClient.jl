@@ -27,6 +27,7 @@ function bulk(client::Client; body, index=nothing, headers=Dict(), auth_params=n
   else
     "/_bulk"
   end
+  options = extract_options(arguments)
   params = process_params(arguments)
 
   payload = if body isa Vector
@@ -36,6 +37,6 @@ function bulk(client::Client; body, index=nothing, headers=Dict(), auth_params=n
   end
 
   Response(
-    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=payload)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=payload, opts=options)
   )
 end

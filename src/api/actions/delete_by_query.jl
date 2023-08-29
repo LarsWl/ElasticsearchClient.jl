@@ -44,9 +44,10 @@ function delete_by_query(client::Client; body, index, headers=Dict(), auth_param
   method = HTTP_POST
 
   path = "/$(_listify(index))/_delete_by_query"
+  options = extract_options(arguments)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body, opts=options)
   )
 end

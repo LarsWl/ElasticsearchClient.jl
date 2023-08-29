@@ -21,7 +21,8 @@ options = Dict(
       :content_type => "application/json"
     ),
     :resurrect_timeout => 0
-  )
+  ),
+  :verbose => 0
 )
 
 successful_health_response_mock = HTTP.Response(

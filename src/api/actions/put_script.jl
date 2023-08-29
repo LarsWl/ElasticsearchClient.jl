@@ -22,9 +22,11 @@ function put_script(client::Client; body, id, context=nothing, headers=Dict(), a
   else
     "/_scripts/$(_listify(id))"
   end
+
+  options = extract_options(arguments)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body, opts=options)
   )
 end

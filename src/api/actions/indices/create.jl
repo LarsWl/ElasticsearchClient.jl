@@ -17,9 +17,10 @@ function create(client::Client; body=nothing, index, headers=Dict(), auth_params
 
   method = HTTP_PUT
   path = "/$(_listify(index))"
+  options = extract_options(arguments)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body, opts=options)
   )
 end

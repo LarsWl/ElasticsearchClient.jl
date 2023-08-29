@@ -22,18 +22,14 @@ function exists(client::Client; index=nothing, headers=Dict(), auth_params=nothi
 
   method = HTTP_HEAD
   path = "/$(_listify(index))"
+
+  options = extract_options(arguments)
+  set_ignore_on_not_found!(options)
   params = process_params(arguments)
 
-  try
-    response = Response(
-      @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing)
-    )
-    response.status == 200 ? true : false
-  catch exc
-    if exc isa ElasticTransport.ServerException && exc.status == 404
-      return false
-    else
-      throw(exc)
-    end
-  end
+  response = Response(
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing, opts=options)
+  )
+
+  response.status == 200
 end

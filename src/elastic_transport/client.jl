@@ -46,8 +46,8 @@ mutable struct Client
 end
 
 function Client(;http_client::Module=HTTP, kwargs...)
-  options = deepcopy(Dict{Symbol, Any}(kwargs))
-  arguments = options
+  arguments = Dict{Symbol, Any}(kwargs)
+  options = deepcopy(arguments)
 
   get!(options, :reload_connections, false)
   get!(options, :retry_on_failure, false)
@@ -56,6 +56,7 @@ function Client(;http_client::Module=HTTP, kwargs...)
   get!(options, :randomize_hosts, false)
   get!(() -> Dict(), options, :transport_options)
   get!(() -> Dict(), options, :http)
+  get!(options, :verbose, 0)
 
   host_keys = [:hosts, :host, :url, :urls]
   host_key_index = findfirst(key -> haskey(arguments, key), host_keys)
@@ -67,10 +68,10 @@ function Client(;http_client::Module=HTTP, kwargs...)
   hosts = extract_hosts(hosts_config, options)
 
   if haskey(arguments, :request_timeout)
-    arguments[:transport_options][:request] = Dict(:timeout => arguments[:request_timeout])
+    options[:transport_options][:request] = Dict(:timeout => arguments[:request_timeout])
   end
 
-  transport = Transport(; hosts=hosts, options=arguments, http_client=http_client)
+  transport = Transport(; hosts=hosts, options=options, http_client=http_client)
 
   Client(
     arguments,
@@ -134,7 +135,8 @@ function perform_request(
   params=Dict(),
   auth_params=nothing,
   body::Union{Nothing,Dict,NamedTuple,String}=nothing,
-  headers::Union{Nothing,Dict}=nothing
+  headers::Union{Nothing,Dict}=nothing,
+  opts::AbstractDict=Dict()
 )
   if method == "GET" && !isnothing(body)
     method = client.send_get_body_as
@@ -151,7 +153,8 @@ function perform_request(
     params=params,
     auth_params=auth_params,
     body=body,
-    headers=headers
+    headers=headers,
+    opts=opts
   )
 end
 

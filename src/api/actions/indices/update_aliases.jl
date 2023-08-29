@@ -15,9 +15,10 @@ function update_aliases(client::Client; body, headers=Dict(), auth_params=nothin
 
   method = HTTP_POST
   path = "/_aliases"
+  options = extract_options(arguments)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=body, opts=options)
   )
 end

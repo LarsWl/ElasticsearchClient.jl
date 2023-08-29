@@ -1,7 +1,7 @@
 module Indices
 
 using ..API: HTTP_GET, HTTP_DELETE, HTTP_PUT, HTTP_HEAD, HTTP_POST
-using ..API: _listify, process_params
+using ..API: _listify, process_params, extract_options, set_ignore_on_not_found!
 using ..API: Response
 using ..ElasticTransport
 
