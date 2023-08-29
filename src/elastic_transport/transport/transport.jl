@@ -4,6 +4,7 @@ using CodecZlib
 using Retry
 using Mocking
 using JSON
+using Logging
 
 const DEFAULT_RELOAD_AFTER = 10_000 # Requests
 const DEFAULT_RESURRECT_AFTER = 60  # Seconds
@@ -24,6 +25,7 @@ mutable struct Transport
   reload_after::Integer
   resurrect_after::Integer
   retry_on_status::Vector{Integer}
+  verbose::Integer
   http_client::Module
 end
 
@@ -46,6 +48,7 @@ function Transport(; hosts::Vector=[], options=Dict(), http_client::Module=HTTP)
     DEFAULT_RELOAD_AFTER,
     get(options, :resurrect_after, DEFAULT_RESURRECT_AFTER),
     options[:retry_on_status],
+    options[:verbose],
     http_client
   )
 end
@@ -149,14 +152,13 @@ function perform_request(
 
   reload_on_failure = get(opts, :reload_on_failure, transport.reload_connections)
   delay_on_retry = get(opts, :delay_on_retry, transport.options[:delay_on_retry]) / 1000.0
+  verbose = get(opts, :verbose, transport.verbose)
+  ignore =
+    get(() -> Integer[], opts, :ignore) |>
+    codes -> (isa(codes, AbstractVector) ? codes : Integer[codes]) |>
+             unique
 
   params = copy(params)
-
-  ignore = if haskey(params, :ignore)
-    unique(Integer[pop!(params, :ignore)])
-  else
-    Integer[]
-  end
 
   tries = 0
   response = nothing
@@ -175,7 +177,7 @@ function perform_request(
     end
     body, headers = compress_request(transport, body, headers)
 
-    @debug "Starting request..."
+    log_message("Starting request...", Logging.Debug, verbose)
     response = @mock transport.http_client.request(
       method, url;
       headers=headers,
@@ -183,7 +185,7 @@ function perform_request(
       status_exception=false,
       auth_params=auth_params
     )
-    connection.failures > 0 && healthy!(connection)
+    connection.failures > 0 && Connections.healthy!(connection)
 
     if response.status >= 300 && in(response.status, transport.retry_on_status)
       raise_transport_error(response.status, String(response.body))
@@ -192,19 +194,23 @@ function perform_request(
     @retry if exception isa ServerException
       !isnothing(response) && !in(response.status, transport.retry_on_status) && throw(exception)
 
-      @warn "[$(typeof(exception))] Attempt $(tries) to get response from $(url)"
+      log_message("[$(typeof(exception))] Attempt $(tries) to get response from $(url)", Logging.Warn, verbose)
 
       sleep(delay_on_retry)
     end
 
     if typeof(exception) in HOST_UNREACHABLE_EXCEPTIONS
-      @error "[$(typeof(exception))] $(connection.host)"
+      log_message("[$(typeof(exception))] $(connection.host)", Logging.Error, verbose)
 
       Connections.dead!(connection)
     end
 
     @retry if reload_on_failure && tries < length(transport.connections) && in(typeof(exception), HOST_UNREACHABLE_EXCEPTIONS)
-      @warn "[$(typeof(exception))] Reloading connections (attempt $(tries) of $(length(transport.connections)))"
+      log_message(
+        "[$(typeof(exception))] Reloading connections (attempt $(tries) of $(length(transport.connections)))",
+        Logging.Warn,
+        verbose
+      )
 
       reload_connections!(transport)
 
@@ -212,7 +218,7 @@ function perform_request(
     end
 
     host = !isnothing(connection) ? connection.host : ""
-    @error "[$(typeof(exception))] $(exception) $host"
+    log_message("[$(typeof(exception))] $(exception) $host", Logging.Error, verbose)
     throw(exception)
   finally
     transport.last_request_at = now()
@@ -223,13 +229,10 @@ function perform_request(
   response_headers = Dict(response.headers)
   response_body = String(response.body)
 
-  if response.status >= 300
-    log_response(method, body, url, response.status, response_body, "N/A", duration)
+  if response.status >= 300 && !in(response.status, ignore)
+    log_response(method, body, url, response.status, response_body, "N/A", duration, verbose, message_level=Logging.Error)
 
-    if !in(response.status, ignore)
-      @error "[$(response.status)] $(response_body)"
-      raise_transport_error(response.status, response_body)
-    end
+    raise_transport_error(response.status, response_body)
   end
 
   json = nothing
@@ -250,8 +253,8 @@ function perform_request(
     end
   end
 
-  log_response(method, body, url, response.status, response_body, took, duration)
-  haskey(response_headers, "Warning") && @warn response_headers["Warning"]
+  log_response(method, body, url, response.status, response_body, took, duration, verbose)
+  haskey(response_headers, "Warning") && log_message(response_headers["Warning"], Logging.Warn, verbose)
 
   if isnothing(json)
     HTTP.Response(response.status, response_headers, response_body)
@@ -283,9 +286,22 @@ function raise_transport_error(response_status, response_body)
   throw(error_type(response_status, response_body))
 end
 
-function log_response(method, body, url, response_status, response_body, took, duration)
+function log_message(message::AbstractString, message_level::Logging.LogLevel, verbose::Integer)
+  should_log = 
+    (verbose <= 0 && message_level >= Logging.Error) ||
+    (verbose == 1 && message_level >= Logging.Info) ||
+    verbose >= 2
+  
+  should_log && @logmsg message_level message
+end
+
+function log_response(method, body, url, response_status, response_body, took, duration, verbose; message_level=Logging.Info)
   sanitized_url = replace(url, r"//(.+):(.+)@" => s"//\1:$SANITIZED_PASSWORD@")
-  @info "$(uppercase(method)) $sanitized_url [status:$(response_status), request:$(duration), query:$(took)]"
+  log_message(
+    "$(uppercase(method)) $sanitized_url [status:$(response_status), request:$(duration), query:$(took)]",
+    message_level,
+    verbose
+  )
   !isnothing(body) && @debug "> $(JSON.json(body))"
-  @debug "< $(String(response_body))"
+  log_message("< $(String(response_body))", Logging.Debug, verbose)
 end

@@ -21,9 +21,10 @@ function get(client::Client; index=nothing, headers=Dict(), auth_params=nothing,
 
   method = HTTP_GET
   path = "/$(_listify(index))"
+  options = extract_options(arguments)
   params = process_params(arguments)
 
   Response(
-    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing)
+    @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing, opts=options)
   )
 end
