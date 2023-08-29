@@ -30,6 +30,6 @@ function exists(client::Client; index=nothing, headers=Dict(), auth_params=nothi
   response = Response(
     @mock perform_request(client, method, path; params=params, auth_params=auth_params, headers=headers, body=nothing, opts=options)
   )
-  
-  response.status == 200 ? true : false
+
+  response.status == 200
 end
