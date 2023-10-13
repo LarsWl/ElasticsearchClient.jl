@@ -3,8 +3,12 @@ using Test
 using Mocking
 using HTTP
 using JSON
+using JSON3
 
 Mocking.activate()
+
+serializer = JSON.json
+deserializer = JSON.parse
 
 hosts = [
   Dict{Symbol, Any}(:host => "localhost", :schema => "https"),
@@ -102,7 +106,7 @@ nodes_response_mock = HTTP.Response(
 
 @testset "Transport test" begin
   @testset "Transport initialization" begin
-    transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options)
+    transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options, http_client=HTTP, serializer=serializer, deserializer=deserializer)
 
     @test length(transport.connections.connections) == length(hosts)
     @test transport.use_compression == options[:compression]
@@ -110,7 +114,7 @@ nodes_response_mock = HTTP.Response(
   end
 
   @testset "Performing request" begin
-    transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options)
+    transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options, http_client=HTTP, serializer=serializer, deserializer=deserializer)
 
     @testset "Testing with successful response" begin
       @testset "Testing GET request with params" begin
@@ -223,6 +227,26 @@ nodes_response_mock = HTTP.Response(
           @test length(ElasticsearchClient.ElasticTransport.Connections.dead(transport.connections)) == 1
         end
       end
+
+      @testset "Testing GET request with custom serializer/deserializer" begin
+        http_patch = @patch HTTP.request(args...;kwargs...) = successful_health_response_mock
+        custom_transport = ElasticsearchClient.ElasticTransport.Transport(;
+          hosts,
+          options=options,
+          http_client=HTTP,
+          serializer=JSON3.write,
+          deserializer=JSON3.read
+        )
+
+
+        apply(http_patch) do 
+          response = ElasticsearchClient.ElasticTransport.perform_request(custom_transport, "GET", "/_cluster/health"; params = Dict("pretty" => true))
+
+          @test response isa HTTP.Response
+          @test response.status == 200
+          @test haskey(response.body, :cluster_name)
+        end
+      end
     end
   end
 
@@ -230,7 +254,7 @@ nodes_response_mock = HTTP.Response(
     @testset "Testing successful sniffing" begin
       http_patch = @patch HTTP.request(args...;kwargs...) = nodes_response_mock
 
-      transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options)
+      transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options, http_client=HTTP, serializer=serializer, deserializer=deserializer)
 
       apply(http_patch) do
         hosts = ElasticsearchClient.ElasticTransport.sniff_hosts(transport) |>
@@ -256,7 +280,7 @@ nodes_response_mock = HTTP.Response(
     @testset "Testing sniffing timeout" begin
       http_patch = @patch HTTP.request(args...;kwargs...) = sleep(ElasticsearchClient.ElasticTransport.DEFAULT_SNIFFING_TIMEOUT + 0.5)
 
-      transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options)
+      transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options, http_client=HTTP, serializer=serializer, deserializer=deserializer)
 
       apply(http_patch) do
         @test_throws ElasticsearchClient.ElasticTransport.SniffingTimetoutError ElasticsearchClient.ElasticTransport.sniff_hosts(transport)
@@ -267,7 +291,7 @@ nodes_response_mock = HTTP.Response(
   @testset "Testing reload connections" begin
     http_patch = @patch HTTP.request(args...;kwargs...) = nodes_response_mock
 
-    transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options)
+    transport = ElasticsearchClient.ElasticTransport.Transport(;hosts, options=options, http_client=HTTP, serializer=serializer, deserializer=deserializer)
 
     apply(http_patch) do
       ElasticsearchClient.ElasticTransport.reload_connections!(transport)

@@ -1,6 +1,7 @@
 using HTTP
 using URIs
 using Mocking
+using JSON
 
 const DEFAULT_PORT = 9200
 const DEFAULT_PROTOCOL = "http"
@@ -19,8 +20,10 @@ Create a client connected to an Elastic cluster.
 
 # Possible arguments
 
-- `http_client::Module`: A module that implement request method. Maybe useful if you need custom http layers. HTTP.jl used bu default. 
+- `http_client::Module`: A module that implement request method. Maybe useful if you need custom http layers. HTTP.jl used bu default.
 - `hosts`: Single host passed as a String, Dict or NamedTuple, or multiple hosts passed as an Array; `host`, `url`, `urls` keys are also valid
+- `serializer`: Function to serialise the body to JSON. JSON.json by default
+- `deserializer`: Function to deserialise response body to Dict. JSON.parse by default
 - `resurrect_after::Integer`: After how many seconds a dead connection should be tried again
 - `reload_connection::Bool`: Reload connections after X requests (false by default)
 - `randomize_hosts::Bool`: Shuffle connections on initialization and reload (false by default)
@@ -45,7 +48,12 @@ mutable struct Client
   transport::Transport
 end
 
-function Client(;http_client::Module=HTTP, kwargs...)
+function Client(;
+  http_client::Module=HTTP,
+  serializer::Function=JSON.json,
+  deserializer::Function=JSON.parse,
+  kwargs...
+)
   arguments = Dict{Symbol, Any}(kwargs)
   options = deepcopy(arguments)
 
@@ -71,7 +79,13 @@ function Client(;http_client::Module=HTTP, kwargs...)
     options[:transport_options][:request] = Dict(:timeout => arguments[:request_timeout])
   end
 
-  transport = Transport(; hosts=hosts, options=options, http_client=http_client)
+  transport = Transport(;
+    hosts=hosts,
+    options=options,
+    http_client=http_client,
+    serializer=serializer,
+    deserializer=deserializer
+  )
 
   Client(
     arguments,
