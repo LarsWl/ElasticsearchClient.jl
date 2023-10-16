@@ -252,8 +252,8 @@ function perform_request(
 
   if !isempty(response_body) && !isnothing(response_content_type) && !isnothing(match(r"json"i, response_content_type))
     json = transport.deserializer(response_body)
-    took = if json isa Dict
-      get(json, "took", "n/a")
+    if json isa AbstractDict
+      took = get(() -> get(json, :took, "n/a"), json, "took")
     end
   end
 
@@ -302,7 +302,7 @@ end
 function log_response(method, body, url, response_status, response_body, took, duration, verbose; message_level=Logging.Info)
   sanitized_url = replace(url, r"//(.+):(.+)@" => s"//\1:$SANITIZED_PASSWORD@")
   log_message(
-    "$(uppercase(method)) $sanitized_url [status:$(response_status), request:$(duration), query:$(took)]",
+    "$(uppercase(method)) $sanitized_url [status:$(response_status), request:$(duration), elastic query: $(took)]",
     message_level,
     verbose
   )
