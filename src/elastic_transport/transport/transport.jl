@@ -27,9 +27,11 @@ mutable struct Transport
   retry_on_status::Vector{Integer}
   verbose::Integer
   http_client::Module
+  serializer::Function
+  deserializer::Function
 end
 
-function Transport(; hosts::Vector=[], options=Dict(), http_client::Module=HTTP)
+function Transport(; hosts::Vector=[], options=Dict(), http_client::Module, serializer::Function, deserializer::Function)
   !haskey(options, :http) && (options[:http] = Dict())
   !haskey(options, :retry_on_status) && (options[:retry_on_status] = Integer[])
   !haskey(options, :delay_on_retry) && (options[:delay_on_retry] = 0)
@@ -49,7 +51,9 @@ function Transport(; hosts::Vector=[], options=Dict(), http_client::Module=HTTP)
     get(options, :resurrect_after, DEFAULT_RESURRECT_AFTER),
     options[:retry_on_status],
     options[:verbose],
-    http_client
+    http_client,
+    serializer,
+    deserializer
   )
 end
 
@@ -173,7 +177,7 @@ function perform_request(
 
     headers = Connections.parse_headers(connection, headers)
     if !isnothing(body) && !isa(body, String)
-      body = JSON.json(body)
+      body = transport.serializer(body)
     end
     body, headers = compress_request(transport, body, headers)
 
@@ -247,7 +251,7 @@ function perform_request(
     end
 
   if !isempty(response_body) && !isnothing(response_content_type) && !isnothing(match(r"json"i, response_content_type))
-    json = JSON.parse(response_body)
+    json = transport.deserializer(response_body)
     took = if json isa Dict
       get(json, "took", "n/a")
     end
@@ -302,6 +306,6 @@ function log_response(method, body, url, response_status, response_body, took, d
     message_level,
     verbose
   )
-  !isnothing(body) && @debug "> $(JSON.json(body))"
+  !isnothing(body) && log_message("> $body", Logging.Debug, verbose)
   log_message("< $(String(response_body))", Logging.Debug, verbose)
 end

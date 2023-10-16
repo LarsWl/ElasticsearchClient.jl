@@ -1,7 +1,7 @@
 name = "ElasticsearchClient"
 uuid = "e586a49d-aa29-4ce5-8f91-fa4f824367bd"
 authors = ["Egor Shmorgun <egor.shmorgun@opensesame.com>"]
-version = "0.2.9"
+version = "0.2.10"
 
 [deps]
 CodecZlib = "944b1d66-785c-5afd-91f1-9de20f533193"
@@ -24,6 +24,7 @@ julia = "1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
 
 [targets]
-test = ["Test"]
+test = ["Test", "JSON3"]
