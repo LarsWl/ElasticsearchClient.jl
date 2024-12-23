@@ -112,4 +112,4 @@ If you want to configure a cluster [see full instructions](https://www.elastic.c
 
 ## What's next?
 
-More information about usage can be found in the [documentation](https://opensesame.github.io/ElasticsearchClient.jl).
+More information about usage can be found in the [documentation](https://larswl.github.io/ElasticsearchClient.jl/stable/).
